@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cota por Loja</title>
+<meta name="theme-color" content="#111a2e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
+<style>
+/* Layout: barra do modelo (trocar entre link da loja e app da gerência); loja = só o formulário; gerência = mês + navegação Rede/Lojas/Cotas */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --ink:#111a2e; --muted:#56607a; --line:#d8dde8;
+  --accent:#1f4fd1; --accent-soft:#e2e9fb; --on-accent:#ffffff;
+  --ok:#12805c; --ok-soft:#dcf3ea; --warn:#9a5500; --warn-soft:#fdecd2; --bad:#c0322b; --bad-soft:#fbe3e1; --on-bad:#ffffff;
+  --track:#e3e7ef; --demo:#fff4cf; --demo-ink:#5c4500; --past:#5b3fb8; --past-soft:#ece6fb; --scrim:rgba(10,15,30,.55);
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c111c; --surface:#161e2e; --ink:#f2f5fb; --muted:#a9b3c9; --line:#2c3750;
+    --accent:#86a6ff; --accent-soft:#1c2a4d; --on-accent:#0b1430;
+    --ok:#5fd3a5; --ok-soft:#123327; --warn:#ffc069; --warn-soft:#3a2a10; --bad:#ff8c84; --bad-soft:#3d1916; --on-bad:#2a0606;
+    --track:#253049; --demo:#3a300d; --demo-ink:#ffe08a; --past:#c3b0ff; --past-soft:#2a2150; --scrim:rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c111c; --surface:#161e2e; --ink:#f2f5fb; --muted:#a9b3c9; --line:#2c3750;
+  --accent:#86a6ff; --accent-soft:#1c2a4d; --on-accent:#0b1430;
+  --ok:#5fd3a5; --ok-soft:#123327; --warn:#ffc069; --warn-soft:#3a2a10; --bad:#ff8c84; --bad-soft:#3d1916; --on-bad:#2a0606;
+  --track:#253049; --demo:#3a300d; --demo-ink:#ffe08a; --past:#c3b0ff; --past-soft:#2a2150; --scrim:rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+#view{display:flex;flex-direction:column;gap:16px}
+.muted{color:var(--muted)}
+
+/* barra do modelo */
+.modelo{margin-top:14px;border:2px dashed var(--demo-ink);background:var(--demo);color:var(--demo-ink);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.modelo p{margin:0;font-size:.9rem;font-weight:600}
+.modelo .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.modelo .lb{font-weight:800;text-transform:uppercase;font-size:.78rem;letter-spacing:.06em}
+.seg{display:inline-flex;background:var(--surface);border-radius:12px;padding:3px;gap:3px;border:1px solid var(--line)}
+.seg button{border:0;background:transparent;border-radius:9px;padding:8px 14px;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.sel{min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 10px;font-weight:700}
+
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:1.9rem;letter-spacing:.01em;margin:0;text-transform:uppercase}
+
+/* blocos */
+.card{background:var(--surface);border-radius:var(--r);padding:18px;border:1px solid var(--line)}
+.sec-t{font-family:var(--f-display);font-weight:700;font-size:1.25rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sec-t small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted);font-size:.9rem}
+.lbl{display:block;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px}
+
+/* formulário */
+.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:12px;align-items:end}
+.inp{width:100%;min-height:54px;border:2px solid var(--line);border-radius:12px;background:var(--bg);padding:8px 12px;font-weight:600}
+.money{display:flex;align-items:center;gap:8px;min-height:54px;border:2px solid var(--line);border-radius:12px;background:var(--bg);padding:0 14px}
+.money:focus-within{border-color:var(--accent)}
+.money.err{border-color:var(--bad)}
+.money span{font-weight:700;color:var(--muted)}
+.money input{flex:1;min-width:0;border:0;background:transparent;outline:0;text-align:right;font-family:var(--f-display);font-weight:700;font-size:1.7rem;font-variant-numeric:tabular-nums}
+.btn{min-height:54px;border:0;border-radius:12px;padding:0 22px;font-weight:700;background:var(--accent);color:var(--on-accent)}
+.btn.sec{background:var(--accent-soft);color:var(--accent)}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent-soft)}
+.btn.dng{background:var(--bad);color:var(--on-bad)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:.95rem}
+.aviso{margin:10px 0 0;font-size:.92rem;color:var(--warn);font-weight:600}
+.ok-msg{margin:10px 0 0;font-size:1rem;color:var(--ok);font-weight:700;background:var(--ok-soft);padding:10px 12px;border-radius:10px}
+
+/* tela da loja (link) */
+.loja-app{width:100%;display:flex;flex-direction:column;gap:14px}
+.loja-app .card{padding:22px}
+
+.loja-app .money input{font-size:2.2rem}
+.loja-app .btn{min-height:60px;font-size:1.1rem}
+.badge-link{display:inline-flex;gap:6px;align-items:center;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.85rem;width:max-content}
+.loja-app h2{font-family:var(--f-display);font-size:2rem;text-transform:uppercase;margin:8px 0 4px}
+
+/* gerência: cabeçalho */
+.ger-head{display:flex;flex-direction:column;gap:12px}
+.mesnav{display:flex;align-items:center;gap:8px}
+.mesnav button{width:48px;height:48px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:1.4rem;font-weight:700}
+.mesnav button:disabled{opacity:.3;cursor:default}
+.mesnav b{font-family:var(--f-display);font-size:1.6rem;text-transform:uppercase;min-width:0;flex:1;text-align:center}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:700;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.passado{background:var(--past-soft);border:3px solid var(--past);border-radius:var(--r);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.passado b{color:var(--past);font-size:1.05rem;display:block}
+.passado .btn{background:var(--past);color:var(--surface)}
+
+/* quadro */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile .v{font-family:var(--f-display);font-weight:800;font-size:2.3rem;line-height:1.05;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile .s{font-size:.9rem;color:var(--muted);font-weight:500}
+.tile.falta{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tile.falta .lbl,.tile.falta .s{color:inherit;opacity:.75}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:.82rem;font-weight:700;width:max-content;max-width:100%}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.neu{background:var(--track);color:var(--muted)}
+.mes-l{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.mes-l .big{font-family:var(--f-display);font-weight:800;font-size:2rem;font-variant-numeric:tabular-nums}
+.mes-l .of{color:var(--muted);font-weight:600}
+.regua{position:relative;height:22px;background:var(--track);border-radius:11px;margin:16px 0 30px}
+.regua.semmarca{margin-bottom:14px}
+.regua .fill{position:absolute;inset:0 auto 0 0;border-radius:11px;background:var(--accent);max-width:100%}
+.regua .fill.ok{background:var(--ok)} .regua .fill.warn{background:var(--warn)} .regua .fill.bad{background:var(--bad)}
+.regua .mark{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--ink);border-radius:2px}
+.regua .mark b{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);font-size:.78rem;font-weight:700;white-space:nowrap;color:var(--ink)}
+.regua .mark.end b{left:auto;right:0;transform:none}
+.regua .mark.start b{left:0;transform:none}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border-top:1px solid var(--line);padding-top:14px}
+.facts div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.facts b{font-size:1.15rem;font-variant-numeric:tabular-nums}
+.facts span{font-size:.85rem;color:var(--muted);font-weight:600}
+.proj{border:2px solid var(--accent)}
+.nota{margin:12px 0 0;font-size:.85rem;color:var(--muted)}
+
+/* tabelas */
+.tbl-wrap{overflow-x:auto;margin:0 -18px;padding:0 18px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--accent-soft)}
+td.loja{font-weight:700}
+tfoot td{font-weight:800;border-bottom:0;border-top:2px solid var(--ink)}
+.pos{color:var(--ok);font-weight:700} .neg{color:var(--bad);font-weight:700}
+.vazio{color:var(--muted);text-align:center;padding:18px}
+
+/* senha */
+.lock{max-width:420px;width:100%;margin:20px auto;display:flex;flex-direction:column;gap:12px}
+.lock h2{font-family:var(--f-display);font-size:1.8rem;text-transform:uppercase;margin:0}
+.lock p{margin:0;color:var(--muted)}
+.erro{color:var(--bad);font-weight:700;margin:0}
+.cotas-edit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px}
+.cotas-edit .inp,.cotas-edit .money{min-height:48px}
+.cotas-edit .money input{font-size:1.3rem}
+.acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* confirmação */
+.ovl{position:fixed;inset:0;z-index:30;background:var(--scrim);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dlg{background:var(--surface);border-radius:18px;max-width:460px;width:100%;padding:22px;display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto}
+.dlg h3{font-family:var(--f-display);font-size:1.6rem;text-transform:uppercase;margin:0}
+.dlg p{margin:0}
+.troca{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;background:var(--bg);border-radius:12px;padding:12px}
+.troca div{display:flex;flex-direction:column;min-width:0}
+.troca small{font-weight:700;color:var(--muted);text-transform:uppercase;font-size:.75rem;letter-spacing:.05em}
+.troca b{font-family:var(--f-display);font-size:1.5rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.troca .seta{font-size:1.4rem;color:var(--muted)}
+.alerta{background:var(--bad-soft);color:var(--bad);border-radius:12px;padding:12px;font-weight:700}
+.alerta.warn{background:var(--warn-soft);color:var(--warn)}
+.dlg .btn{width:100%}
+
+.foot{color:var(--muted);font-size:.85rem;text-align:center}
+
+@media (max-width:720px){
+  .form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .form .btn{grid-column:1/-1}
+  .form .f-valor{grid-column:1/-1;order:-1}
+  .tiles{grid-template-columns:minmax(0,1fr)}
+  .tile .v{font-size:2rem;overflow-wrap:normal}
+  .troca{grid-template-columns:minmax(0,1fr)}
+  .troca .seta{transform:rotate(90deg);width:max-content}
+  .troca b{overflow-wrap:normal}
+  .facts{grid-template-columns:minmax(0,1fr)}
+  .cotas-edit{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:no-preference){ .regua .fill{transition:width .4s ease} }
+
+.carregando{text-align:center;color:var(--muted);font-weight:600;padding:40px 18px}
+.lnk{border:0;background:none;color:var(--accent);font-weight:700;text-decoration:underline;padding:0}
+.chk{display:flex;gap:10px;align-items:center;font-weight:600}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
+.links{display:flex;flex-direction:column;gap:14px}
+.linkrow{display:flex;flex-direction:column;gap:8px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.linkrow:last-child{border-bottom:0;padding-bottom:0}
+.linkrow .inp{min-height:46px;font-size:.85rem;font-weight:500}
+.sel-all{user-select:all;overflow-wrap:anywhere}
+.btn:disabled{opacity:.6;cursor:default}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);
+  padding:12px 18px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;max-width:calc(100% - 32px);text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+.loja-app h2{margin-top:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main id="view"><div class="card carregando">Carregando…</div></main>
+</div>
+<div id="dlg"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+/* ---------- qual tela abrir ----------
+   Link com ?loja=CÓDIGO abre a tela daquela loja e o aparelho passa a lembrar dela
+   (assim o ícone instalado na tela do celular abre direto na loja certa).
+   Sem código: tela da gerência (com senha). */
+const BOOT = (function(){
+  let t = '';
+  try { t = new URLSearchParams(location.search).get('loja') || ''; } catch(e){}
+  t = String(t).replace(/[^A-Za-z0-9]/g,'').slice(0,40);
+  try { if (t) localStorage.setItem('cota_loja', t); else t = localStorage.getItem('cota_loja') || ''; } catch(e){}
+  return { modo: t ? 'loja' : 'ger', token: t };
+})();
+const API = (typeof API_URL === 'string' ? API_URL : '').trim();
+const BASE = location.origin + location.pathname.replace(/index\.html$/,'');
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const pad = n => String(n).padStart(2,'0');
+const diasDe = m => new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
+const addMes = (m,n) => { let y=+m.slice(0,4), mm=+m.slice(5,7)+n; while(mm<1){mm+=12;y--} while(mm>12){mm-=12;y++} return y+'-'+pad(mm); };
+const nomeMes = m => MESES[+m.slice(5,7)-1] + ' de ' + m.slice(0,4);
+const nomeMesC = m => MESES[+m.slice(5,7)-1];
+function brl(c){ const n=c<0; c=Math.abs(Math.round(c)); return (n?'−':'')+'R$ '+String(Math.floor(c/100)).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+pad(c%100); }
+function brlN(c){ c=Math.round(c); return String(Math.floor(c/100)).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+pad(c%100); }
+const dataBR = d => d.slice(8,10)+'/'+d.slice(5,7);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pctTxt = p => Math.round(p*100) + '%';
+const store = {
+  get(k){ try { return sessionStorage.getItem(k) || localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v,lembrar){ try { sessionStorage.setItem(k,v); if (lembrar) localStorage.setItem(k,v); } catch(e){} },
+  del(k){ try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch(e){} }
+};
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),3000); }
+
+/* ---------- conversa com a planilha ---------- */
+async function call(fn){
+  const args = Array.prototype.slice.call(arguments,1);
+  const r = await fetch(API, { method:'POST', body: JSON.stringify({ fn: fn, args: args }) });
+  if (!r.ok) throw new Error('REDE');
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.err || 'ERRO');
+  return j.res;
+}
+const ERROS = {
+  SENHA:'Senha incorreta.', LINK_INVALIDO:'Este link não é mais válido. Peça um link novo para a gerência.',
+  DIA_INVALIDO:'Esse dia não pode ser lançado. A loja lança só dias do mês atual, até hoje.',
+  VALOR_INVALIDO:'Digite um valor maior que zero.', EMAIL_INVALIDO:'Esse e-mail não parece certo. Confira e tente de novo.',
+  SENHA_CURTA:'A senha precisa ter pelo menos 4 caracteres.'
+};
+function msgErro(e){ const m = String((e && e.message) || e); for (const k in ERROS) if (m.indexOf(k) >= 0) return [k, ERROS[k]]; return ['', 'Não foi possível falar com a planilha. Confira a internet e tente de novo.']; }
+
+/* ---------- estado ---------- */
+let D = null, HOJE = '', MES_ATUAL = '';
+const S = { modo: BOOT.modo, token: BOOT.token, senha: '', gerOk:false, mes:'', ref:'', gv:'rede', f:{data:'',valor:0}, msg:'', erroSenha:'', ocupado:false, ultima:'' };
+const view = document.getElementById('view');
+function usar(d){
+  D = d; HOJE = d.hoje; MES_ATUAL = d.mesAtual; S.mes = d.mes;
+  if (!S.ref || !S.ref.startsWith(MES_ATUAL) || S.ref > HOJE) S.ref = HOJE;
+  if (!S.f.data || !S.f.data.startsWith(S.mes) || S.f.data > HOJE) S.f.data = S.mes === MES_ATUAL ? HOJE : S.mes + '-' + pad(diasDe(S.mes));
+  S.ultima = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+const lojaById = id => D.lojas.find(l => l.id === id);
+const cotaDe = (l,m) => (l.cotas && l.cotas[m]) || 0;
+
+/* ---------- cálculos ---------- */
+function calc(l, m, ref){
+  const DIAS = diasDe(m), cota = cotaDe(l,m);
+  const fechado = m < MES_ATUAL;
+  if (fechado || !ref) ref = fechado ? m + '-' + pad(DIAS) : HOJE;
+  const dia = +ref.slice(8,10);
+  const cotaDia = Math.round(cota / DIAS);
+  const vendaDia = l.vendas[ref];
+  const doMes = Object.keys(l.vendas).filter(d => d.startsWith(m) && d <= ref).map(d => [d, l.vendas[d]]);
+  const vendido = doMes.reduce((a,x) => a+x[1], 0);
+  const falta = Math.max(0, cota - vendido);
+  const pct = cota ? vendido / cota : 0;
+  const esperado = dia / DIAS;
+  const restantes = DIAS - dia + (vendaDia == null ? 1 : 0);
+  const porDia = restantes > 0 ? Math.ceil(falta / restantes) : falta;
+  const r = esperado ? pct / esperado : 1;
+  const status = !cota ? ['neu','Sem cota'] : pct >= 1 ? ['ok', fechado ? 'Bateu a cota' : 'Cota batida'] : fechado ? ['bad','Não bateu'] : r >= 1 ? ['ok','No ritmo'] : r >= 0.9 ? ['warn','Atenção'] : ['bad','Abaixo do ritmo'];
+  const diasBase = vendaDia == null ? dia - 1 : dia;
+  const media = diasBase > 0 ? vendido / diasBase : 0;
+  const proj = fechado ? vendido : Math.round(media * DIAS);
+  const melhor = doMes.reduce((a,x) => !a || x[1] > a[1] ? x : a, null);
+  return { DIAS, cota, dia, cotaDia, vendaDia, vendido, falta, pct, esperado, restantes, porDia, status, media, proj, projPct: cota ? proj/cota : 0,
+    diasLanc: doMes.length, melhor, fechado, diffDia: vendaDia == null ? null : vendaDia - cotaDia };
+}
+
+/* ---------- confirmação ---------- */
+function confirmar(o){
+  return new Promise(res => {
+    const el = document.getElementById('dlg');
+    el.innerHTML = `<div class="ovl" role="dialog" aria-modal="true" aria-labelledby="dlg-t"><div class="dlg">
+      <h3 id="dlg-t">${o.titulo}</h3>${o.corpo}
+      <button class="btn ${o.perigo ? 'dng' : ''}" id="dlg-sim">${o.sim}</button>
+      <button class="btn ghost" id="dlg-nao">${o.nao || 'Cancelar'}</button></div></div>`;
+    const fim = v => { el.innerHTML = ''; res(v); };
+    el.querySelector('#dlg-sim').onclick = () => fim(true);
+    el.querySelector('#dlg-nao').onclick = () => fim(false);
+    el.querySelector('.ovl').onclick = e => { if (e.target.classList.contains('ovl')) fim(false); };
+    el.querySelector('#dlg-nao').focus();
+  });
+}
+async function conferirVenda(l, data, novo){
+  const m = data.slice(0,7), antigo = l.vendas[data], cotaDia = m === S.mes ? Math.round(cotaDe(l,m) / diasDe(m)) : 0;
+  if (antigo != null) {
+    if (antigo === novo) return true;
+    const r = novo / antigo, grande = r < 0.5 || r > 2;
+    const varTxt = r < 1 ? `${(Math.round((1-r)*1000)/10).toLocaleString('pt-BR')}% menor` : `${(Math.round((r-1)*1000)/10).toLocaleString('pt-BR')}% maior`;
+    return confirmar({
+      titulo: `Trocar a venda de ${dataBR(data)}?`,
+      corpo: `<p>Já existe uma venda lançada para a <b>${esc(l.nome)}</b> neste dia.</p>
+        <div class="troca"><div><small>Lançado</small><b>${brl(antigo)}</b></div><span class="seta">→</span><div><small>Novo valor</small><b>${brl(novo)}</b></div></div>
+        ${grande ? `<div class="alerta">Atenção: o novo valor é ${varTxt} que o lançado. Confira se não faltou ou sobrou algum zero.</div>` : `<p class="muted">O novo valor é ${varTxt} que o lançado.</p>`}`,
+      sim: `Sim, trocar para ${brl(novo)}`, nao: `Não, manter ${brl(antigo)}`, perigo: grande
+    });
+  }
+  if (cotaDia && (novo < cotaDia * 0.15 || novo > cotaDia * 4)) {
+    return confirmar({
+      titulo: 'Confira o valor',
+      corpo: `<div class="alerta warn">${brl(novo)} está muito ${novo < cotaDia ? 'abaixo' : 'acima'} da cota diária da ${esc(l.nome)} (${brl(cotaDia)}).</div><p>O valor está certo?</p>`,
+      sim: `Sim, lançar ${brl(novo)}`, nao: 'Corrigir o valor'
+    });
+  }
+  return true;
+}
+
+/* ---------- pedaços de tela ---------- */
+function chipDia(c){
+  if (c.vendaDia == null) return `<span class="chip neu">Sem lançamento</span>`;
+  return c.diffDia >= 0 ? `<span class="chip ok">▲ ${brl(c.diffDia)} acima da cota</span>` : `<span class="chip bad">▼ ${brl(-c.diffDia)} abaixo da cota</span>`;
+}
+function chipProj(p){ return p >= 1 ? `<span class="chip ok">Vai bater</span>` : p >= .95 ? `<span class="chip warn">Perto</span>` : `<span class="chip bad">Não bate</span>`; }
+function regua(c){
+  const w = Math.min(100, c.pct*100);
+  if (c.fechado) return `<div class="regua semmarca"><div class="fill ${c.status[0]}" style="width:${w}%"></div></div>`;
+  const m = c.esperado*100, pos = m > 85 ? 'end' : m < 15 ? 'start' : '';
+  return `<div class="regua"><div class="fill ${c.status[0]}" style="width:${w}%"></div>
+    <div class="mark ${pos}" style="left:calc(${m}% - 1px)"><b>Ritmo ideal: ${Math.round(m)}%</b></div></div>`;
+}
+function formVenda(l, min, max){
+  const existente = l.vendas[S.f.data];
+  return `<form class="form" id="form-venda" data-loja="${l.id}" novalidate>
+      <div><label class="lbl" for="f-data">Dia da venda</label>
+        <input class="inp" type="date" id="f-data" value="${S.f.data}" min="${min}" max="${max}"></div>
+      <div class="f-valor"><label class="lbl" for="f-valor">Valor vendido no dia</label>
+        <div class="money"><span>R$</span><input id="f-valor" inputmode="numeric" autocomplete="off" value="${brlN(S.f.valor)}"></div></div>
+      <button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : existente != null ? 'Atualizar venda' : 'Lançar venda'}</button>
+    </form>
+    ${existente != null ? `<p class="aviso">Já existe venda lançada em ${dataBR(S.f.data)}: ${brl(existente)}. Se salvar, o app pede confirmação.</p>` : ''}
+    ${S.msg ? `<p class="ok-msg" role="status">${S.msg}</p>` : ''}`;
+}
+function painelAtual(l, c, ref){
+  const semCota = !c.cota ? `<p class="aviso">A cota deste mês ainda não foi cadastrada pela gerência.</p>` : '';
+  return `<section class="tiles">
+      <div class="tile"><span class="lbl">Venda do dia ${dataBR(ref)}</span><span class="v">${c.vendaDia == null ? '—' : brl(c.vendaDia)}</span>${chipDia(c)}</div>
+      <div class="tile"><span class="lbl">Cota diária</span><span class="v">${brl(c.cotaDia)}</span><span class="s">${brl(c.cota)} ÷ ${c.DIAS} dias</span></div>
+      <div class="tile falta"><span class="lbl">Falta para a cota do mês</span><span class="v">${c.falta || !c.cota ? brl(c.falta) : 'Cota batida!'}</span><span class="s">${c.falta ? `${brl(c.porDia)} por dia nos ${c.restantes} dias que restam` : c.cota ? `Superou em ${brl(c.vendido - c.cota)}` : ''}</span></div>
+    </section>
+    <section class="card">
+      <h2 class="sec-t">Cota do mês <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>${semCota}
+      <div class="mes-l"><div><span class="lbl">Vendido até ${dataBR(ref)}</span><span class="big">${brl(c.vendido)}</span> <span class="of">de ${brl(c.cota)}</span></div><div class="big">${pctTxt(c.pct)}</div></div>
+      ${regua(c)}
+      <div class="facts">
+        <div><b>${brl(c.proj)} · ${pctTxt(c.projPct)}</b><span>Projeção de fechamento</span></div>
+        <div><b>${brl(Math.round(c.media))}</b><span>Média diária atual</span></div>
+        <div><b>${c.diasLanc} de ${c.dia}</b><span>Dias com venda lançada</span></div>
+      </div>
+    </section>`;
+}
+function listaLanc(l, m, c){
+  const linhas = Object.keys(l.vendas).filter(d => d.startsWith(m)).sort().reverse();
+  return `<section class="card">
+    <h2 class="sec-t">Lançamentos de ${nomeMesC(m)} <small>toque num dia para corrigir</small></h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Dia</th><th>Venda</th><th>Cota diária</th><th>Diferença</th></tr></thead>
+      <tbody>${linhas.length ? linhas.map(d => { const v = l.vendas[d], df = v - c.cotaDia;
+        return `<tr class="click" data-dia="${d}"><td>${dataBR(d)}</td><td>${brl(v)}</td><td>${brl(c.cotaDia)}</td><td class="${df>=0?'pos':'neg'}">${df>=0?'+':'−'} ${brl(Math.abs(df))}</td></tr>`; }).join('')
+        : '<tr><td colspan="4" class="vazio">Nenhuma venda lançada neste mês.</td></tr>'}</tbody>
+    </table></div>
+  </section>`;
+}
+
+/* ================= TELA DA LOJA ================= */
+function telaLoja(){
+  const l = D.lojas[0];
+  const c = calc(l, MES_ATUAL, S.f.data);
+  return `<div class="loja-app">
+    <div class="card">
+      <h2>Lançar venda</h2>
+      <p class="muted" style="margin:0 0 16px">${esc(l.nome)} · ${nomeMes(MES_ATUAL)}</p>
+      ${formVenda(l, MES_ATUAL+'-01', HOJE)}
+      <p class="muted" style="margin:12px 0 0;font-size:.9rem">Errou o valor? Lance de novo no mesmo dia. O app mostra o valor anterior e pede confirmação antes de trocar.</p>
+    </div>
+  </div>
+  ${painelAtual(l, c, S.f.data)}
+  ${listaLanc(l, MES_ATUAL, c)}
+  <p class="foot">Atualizado às ${S.ultima} · <button class="lnk" data-a="atualizar">Atualizar</button></p>
+  <p class="foot"><button class="lnk" data-a="sou-gerencia">Entrar como gerência neste aparelho</button></p>`;
+}
+
+/* ================= GERÊNCIA ================= */
+function telaSenha(){
+  return `<form class="card lock" id="form-senha">
+    <h2>Gerência</h2>
+    <p>Acesso só da gerência. Digite a senha.</p>
+    <div><label class="lbl" for="senha">Senha</label><input class="inp" id="senha" type="password" autocomplete="current-password"></div>
+    <label class="chk"><input type="checkbox" id="lembrar" checked> Lembrar neste aparelho</label>
+    ${S.erroSenha ? `<p class="erro">${S.erroSenha}</p>` : ''}
+    <button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Entrando…' : 'Entrar'}</button>
+  </form>`;
+}
+function telaGerencia(){
+  const m = S.mes, atual = m === MES_ATUAL;
+  let h = `<section class="card ger-head">
+    <h2 class="sec-t" style="margin:0">Gerência <span class="acoes" style="margin:0"><button class="btn sec sm" data-a="atualizar" type="button">⟳ Atualizar</button><button class="btn ghost sm" data-a="sair" type="button">Sair</button></span></h2>
+    <p class="muted" style="margin:0;font-size:.85rem">Atualizado às ${S.ultima}. Atualiza sozinho a cada minuto.</p>
+    <div class="mesnav"><button data-a="mes" data-v="-1" ${m <= D.mesMin ? 'disabled' : ''} aria-label="Mês anterior">‹</button><b>${nomeMes(m)}</b><button data-a="mes" data-v="1" ${atual ? 'disabled' : ''} aria-label="Próximo mês">›</button></div>
+    <nav class="tabs" aria-label="Seções">
+      <button class="tab" aria-selected="${S.gv==='rede'}" data-gv="rede">${atual ? 'Rede' : 'Resumo do mês'}</button>
+      ${D.lojas.map(l => `<button class="tab" aria-selected="${S.gv===l.id}" data-gv="${l.id}">${esc(l.nome)}</button>`).join('')}
+      <button class="tab" aria-selected="${S.gv==='cotas'}" data-gv="cotas">✎ Nomes e cotas</button>
+      <button class="tab" aria-selected="${S.gv==='ajustes'}" data-gv="ajustes">🔗 Links e ajustes</button>
+    </nav>
+  </section>`;
+  if (D.senhaPadrao) h += `<p class="aviso card" style="margin:0">A senha da gerência ainda é a padrão (1234). Troque em <b>Links e ajustes</b>.</p>`;
+  if (!atual) h += `<div class="passado"><div><b>Você está vendo ${nomeMes(m)}</b><span>Mês encerrado. As lojas continuam lançando em ${nomeMesC(MES_ATUAL)}.</span></div><button class="btn sm" data-a="mes-atual">Voltar para ${nomeMesC(MES_ATUAL)}</button></div>`;
+  const semCota = D.lojas.filter(l => !cotaDe(l, m));
+  if (semCota.length && S.gv !== 'cotas' && S.gv !== 'ajustes') h += `<p class="aviso card" style="margin:0">Sem cota cadastrada em ${nomeMesC(m)}: ${semCota.map(l => esc(l.nome)).join(', ')}. <button class="lnk" data-gv="cotas">Cadastrar cotas</button></p>`;
+  if (S.gv === 'rede') h += atual ? gerRede() : gerResumo();
+  else if (S.gv === 'cotas') h += gerCotas();
+  else if (S.gv === 'ajustes') h += gerAjustes();
+  else { const l = lojaById(S.gv); h += l ? gerLoja(l) : gerRede(); }
+  return h;
+}
+function totais(m, ref){
+  const cs = D.lojas.map(l => [l, calc(l, m, ref)]);
+  const T = cs.reduce((a,x) => { const c=x[1]; return { cota:a.cota+c.cota, cotaDia:a.cotaDia+c.cotaDia, vendaDia:a.vendaDia+(c.vendaDia||0), vendido:a.vendido+c.vendido, falta:a.falta+c.falta, proj:a.proj+c.proj }; }, {cota:0,cotaDia:0,vendaDia:0,vendido:0,falta:0,proj:0});
+  T.pct = T.cota ? T.vendido/T.cota : 0;
+  return [cs, T];
+}
+function gerRede(){
+  const m = MES_ATUAL, ref = S.ref, DIAS = diasDe(m);
+  const [cs, T] = totais(m, ref);
+  const semLanc = cs.filter(x => x[1].vendaDia == null).map(x => x[0].nome);
+  const dia = +ref.slice(8,10), esp = dia/DIAS, rT = esp ? T.pct/esp : 1;
+  const stT = T.pct >= 1 ? ['ok','Cota batida'] : rT >= 1 ? ['ok','No ritmo'] : rT >= .9 ? ['warn','Atenção'] : ['bad','Abaixo do ritmo'];
+  const diffT = T.vendaDia - T.cotaDia, projPctT = T.cota ? T.proj/T.cota : 0, projDiff = T.proj - T.cota;
+  const nBate = cs.filter(x => x[1].projPct >= 1).length;
+  return `
+  <section class="card">
+    <div class="form" style="grid-template-columns:minmax(0,240px)"><div><label class="lbl" for="g-data">Dia de referência</label>
+      <input class="inp" type="date" id="g-data" value="${ref}" min="${m}-01" max="${HOJE}"></div></div>
+    ${semLanc.length ? `<p class="aviso">Sem lançamento em ${dataBR(ref)}: ${semLanc.map(esc).join(', ')}.</p>` : `<p class="ok-msg">Todas as lojas lançaram a venda de ${dataBR(ref)}.</p>`}
+  </section>
+  <section class="tiles">
+    <div class="tile"><span class="lbl">Venda do dia · rede</span><span class="v">${brl(T.vendaDia)}</span>
+      ${diffT>=0 ? `<span class="chip ok">▲ ${brl(diffT)} acima da cota</span>` : `<span class="chip bad">▼ ${brl(-diffT)} abaixo da cota</span>`}</div>
+    <div class="tile"><span class="lbl">Cota diária · rede</span><span class="v">${brl(T.cotaDia)}</span><span class="s">${brl(T.cota)} ÷ ${DIAS} dias</span></div>
+    <div class="tile falta"><span class="lbl">Falta para a cota · rede</span><span class="v">${brl(T.falta)}</span><span class="s">Vendido ${brl(T.vendido)} de ${brl(T.cota)}</span></div>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Cota do mês · rede <span class="chip ${stT[0]}">${stT[1]}</span></h2>
+    <div class="mes-l"><div><span class="lbl">Vendido até ${dataBR(ref)}</span><span class="big">${brl(T.vendido)}</span> <span class="of">de ${brl(T.cota)}</span></div><div class="big">${pctTxt(T.pct)}</div></div>
+    ${regua({pct:T.pct, esperado:esp, status:stT})}
+  </section>
+  <section class="card proj">
+    <h2 class="sec-t">Projeção de fechamento · rede ${chipProj(projPctT)}</h2>
+    <div class="mes-l"><div><span class="lbl">Se mantiver o ritmo atual, fecha o mês em</span><span class="big">${brl(T.proj)}</span> <span class="of">cota ${brl(T.cota)}</span></div><div class="big">${pctTxt(projPctT)}</div></div>
+    <div class="facts">
+      <div><b class="${projDiff>=0?'pos':'neg'}">${projDiff>=0?'+':'−'} ${brl(Math.abs(projDiff))}</b><span>${projDiff>=0?'Acima':'Abaixo'} da cota no fechamento</span></div>
+      <div><b>${nBate} de ${D.lojas.length}</b><span>Lojas com projeção de bater a cota</span></div>
+      <div><b>${brl(Math.round(T.proj/DIAS))}</b><span>Média diária atual da rede</span></div>
+    </div>
+    <p class="nota">Cálculo: média diária vendida até ${dataBR(ref)} × ${DIAS} dias do mês. Dias ainda sem lançamento não entram na média.</p>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Por loja <small>toque numa loja para abrir e editar</small></h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Loja</th><th>Venda do dia</th><th>Cota diária</th><th>Vendido no mês</th><th>Cota do mês</th><th>Falta</th><th>%</th><th>Situação</th></tr></thead>
+      <tbody>${cs.slice().sort((a,b) => b[1].pct - a[1].pct).map(x => { const l=x[0], c=x[1]; return `<tr class="click" data-gv="${l.id}">
+        <td class="loja">${esc(l.nome)}</td>
+        <td>${c.vendaDia == null ? '<span class="chip neu">Sem lançamento</span>' : `<span class="${c.diffDia>=0?'pos':'neg'}">${brl(c.vendaDia)}</span>`}</td>
+        <td>${brl(c.cotaDia)}</td><td>${brl(c.vendido)}</td><td>${brl(c.cota)}</td><td>${brl(c.falta)}</td>
+        <td><b>${pctTxt(c.pct)}</b></td><td><span class="chip ${c.status[0]}">${c.status[1]}</span></td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>Total</td><td>${brl(T.vendaDia)}</td><td>${brl(T.cotaDia)}</td><td>${brl(T.vendido)}</td><td>${brl(T.cota)}</td><td>${brl(T.falta)}</td><td>${pctTxt(T.pct)}</td><td></td></tr></tfoot>
+    </table></div>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Projeção por loja <small>da maior para a menor</small></h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Loja</th><th>Média diária</th><th>Projeção do mês</th><th>Cota do mês</th><th>Diferença</th><th>Proj. %</th><th></th></tr></thead>
+      <tbody>${cs.slice().sort((a,b) => b[1].projPct - a[1].projPct).map(x => { const l=x[0], c=x[1], d = c.proj - c.cota; return `<tr class="click" data-gv="${l.id}">
+        <td class="loja">${esc(l.nome)}</td><td>${brl(Math.round(c.media))}</td><td><b>${brl(c.proj)}</b></td><td>${brl(c.cota)}</td>
+        <td class="${d>=0?'pos':'neg'}">${d>=0?'+':'−'} ${brl(Math.abs(d))}</td><td><b>${pctTxt(c.projPct)}</b></td><td>${chipProj(c.projPct)}</td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>Rede</td><td>${brl(Math.round(T.proj/DIAS))}</td><td>${brl(T.proj)}</td><td>${brl(T.cota)}</td><td class="${projDiff>=0?'pos':'neg'}">${projDiff>=0?'+':'−'} ${brl(Math.abs(projDiff))}</td><td>${pctTxt(projPctT)}</td><td>${chipProj(projPctT)}</td></tr></tfoot>
+    </table></div>
+  </section>`;
+}
+function gerResumo(){
+  const m = S.mes, DIAS = diasDe(m);
+  const [cs, T] = totais(m);
+  const res = T.vendido - T.cota;
+  const bateram = cs.filter(x => x[1].cota && x[1].pct >= 1);
+  const st = T.pct >= 1 ? ['ok','Rede bateu a cota'] : ['bad','Rede não bateu a cota'];
+  const melhor = cs.slice().sort((a,b) => b[1].pct - a[1].pct)[0];
+  const porDia = {};
+  D.lojas.forEach(l => Object.keys(l.vendas).forEach(d => { if (d.startsWith(m)) porDia[d] = (porDia[d]||0) + l.vendas[d]; }));
+  let melhorDia = null; Object.keys(porDia).forEach(d => { if (!melhorDia || porDia[d] > melhorDia[1]) melhorDia = [d, porDia[d]]; });
+  return `
+  <section class="tiles">
+    <div class="tile"><span class="lbl">Vendido em ${nomeMesC(m)}</span><span class="v">${brl(T.vendido)}</span><span class="s">${DIAS} dias · média ${brl(Math.round(T.vendido/DIAS))} por dia</span></div>
+    <div class="tile"><span class="lbl">Cota do mês · rede</span><span class="v">${brl(T.cota)}</span><span class="s">Cota diária ${brl(Math.round(T.cota/DIAS))}</span></div>
+    <div class="tile falta"><span class="lbl">Resultado</span><span class="v">${res>=0?'+':'−'} ${brl(Math.abs(res))}</span><span class="s">${res>=0?'Acima da cota':'Faltou para a cota'}</span></div>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Fechamento · rede <span class="chip ${st[0]}">${st[1]}</span></h2>
+    <div class="mes-l"><div><span class="lbl">Vendido no mês</span><span class="big">${brl(T.vendido)}</span> <span class="of">de ${brl(T.cota)}</span></div><div class="big">${pctTxt(T.pct)}</div></div>
+    ${regua({pct:T.pct, status:st, fechado:true})}
+    <div class="facts">
+      <div><b>${bateram.length} de ${D.lojas.length}</b><span>Lojas que bateram a cota</span></div>
+      <div><b>${melhor ? esc(melhor[0].nome) + ' · ' + pctTxt(melhor[1].pct) : '—'}</b><span>Melhor resultado</span></div>
+      <div><b>${melhorDia ? dataBR(melhorDia[0]) + ' · ' + brl(melhorDia[1]) : '—'}</b><span>Melhor dia da rede</span></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Resultado por loja <small>toque numa loja para ver os dias</small></h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Loja</th><th>Vendido</th><th>Cota</th><th>Diferença</th><th>%</th><th>Dias lançados</th><th></th></tr></thead>
+      <tbody>${cs.slice().sort((a,b) => b[1].pct - a[1].pct).map(x => { const l=x[0], c=x[1], d = c.vendido - c.cota; return `<tr class="click" data-gv="${l.id}">
+        <td class="loja">${esc(l.nome)}</td><td>${brl(c.vendido)}</td><td>${brl(c.cota)}</td>
+        <td class="${d>=0?'pos':'neg'}">${d>=0?'+':'−'} ${brl(Math.abs(d))}</td><td><b>${pctTxt(c.pct)}</b></td><td>${c.diasLanc} de ${DIAS}</td>
+        <td><span class="chip ${c.status[0]}">${c.status[1]}</span></td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>Rede</td><td>${brl(T.vendido)}</td><td>${brl(T.cota)}</td><td class="${res>=0?'pos':'neg'}">${res>=0?'+':'−'} ${brl(Math.abs(res))}</td><td>${pctTxt(T.pct)}</td><td></td><td></td></tr></tfoot>
+    </table></div>
+  </section>`;
+}
+function gerLoja(l){
+  const m = S.mes, c = calc(l, m, m === MES_ATUAL ? S.ref : null);
+  const max = m === MES_ATUAL ? HOJE : m + '-' + pad(c.DIAS);
+  let h = `<section class="card">
+    <h2 class="sec-t">${esc(l.nome)} · lançar ou corrigir <small>a gerência pode editar qualquer dia</small></h2>
+    ${formVenda(l, m+'-01', max)}
+  </section>`;
+  if (!c.fechado) h += painelAtual(l, c, S.ref);
+  else {
+    const d = c.vendido - c.cota;
+    h += `<section class="card">
+      <h2 class="sec-t">Fechamento de ${nomeMesC(m)} <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>
+      <div class="mes-l"><div><span class="lbl">Vendido no mês</span><span class="big">${brl(c.vendido)}</span> <span class="of">de ${brl(c.cota)}</span></div><div class="big">${pctTxt(c.pct)}</div></div>
+      ${regua(c)}
+      <div class="facts">
+        <div><b class="${d>=0?'pos':'neg'}">${d>=0?'+':'−'} ${brl(Math.abs(d))}</b><span>${d>=0?'Acima da cota':'Faltou para a cota'}</span></div>
+        <div><b>${brl(Math.round(c.vendido / c.DIAS))}</b><span>Média por dia</span></div>
+        <div><b>${c.melhor ? dataBR(c.melhor[0]) + ' · ' + brl(c.melhor[1]) : '—'}</b><span>Melhor dia</span></div>
+      </div>
+    </section>`;
+  }
+  return h + listaLanc(l, m, c);
+}
+function gerCotas(){
+  const m = S.mes;
+  return `<section class="card">
+    <h2 class="sec-t">Nomes das lojas e cotas de ${nomeMesC(m)} <small>só a gerência altera</small></h2>
+    <p class="muted" style="margin:0 0 14px">A cota salva aqui vale para ${nomeMesC(m)} e para os meses seguintes, até você mudar de novo. As lojas veem a cota nova na próxima vez que abrirem o app.</p>
+    <form id="form-cotas"><div class="cotas-edit">${D.lojas.map(l => `
+      <div><label class="lbl" for="n-${l.id}">Nome da loja</label><input class="inp" id="n-${l.id}" value="${esc(l.nome)}" maxlength="60"></div>
+      <div><label class="lbl" for="c-${l.id}">Cota de ${nomeMesC(m)}</label><div class="money"><span>R$</span><input id="c-${l.id}" class="mask" data-c="${cotaDe(l,m)}" inputmode="numeric" value="${brlN(cotaDe(l,m))}"></div></div>`).join('')}
+    </div><div class="acoes"><button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : 'Salvar nomes e cotas'}</button></div>
+    ${S.msg ? `<p class="ok-msg" role="status">${S.msg}</p>` : ''}</form>
+  </section>`;
+}
+function gerAjustes(){
+  const base = BASE;
+  return `<section class="card">
+    <h2 class="sec-t">Links das lojas</h2>
+    <p class="muted" style="margin:0 0 14px">Mande cada link só para a loja certa. Quem tiver o link consegue lançar por aquela loja. Se um link cair em mãos erradas, gere um novo: o antigo para de funcionar na hora.</p>
+    <div class="links">${D.lojas.map(l => `<div class="linkrow">
+      <b>${esc(l.nome)}</b>
+      <input class="inp" id="lk-${l.id}" readonly value="${esc(base + '?loja=' + l.codigo)}" aria-label="Link da ${esc(l.nome)}">
+      <div class="acoes" style="margin:0"><button class="btn sec sm" data-a="copiar" data-id="${l.id}" type="button">Copiar</button><button class="btn ghost sm" data-a="novo-link" data-id="${l.id}" type="button">Gerar novo link</button></div>
+    </div>`).join('')}</div>
+    <p class="nota">Seu link da gerência: <b class="sel-all">${esc(base)}</b></p>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Resumo diário por e-mail</h2>
+    <p class="muted" style="margin:0 0 12px">Todo dia, por volta das 22h30: venda de cada loja, cota do dia, acumulado do mês e quais lojas não lançaram.</p>
+    <form id="form-email" class="form" style="grid-template-columns:minmax(0,1fr) auto">
+      <div><label class="lbl" for="aj-email">Enviar para</label><input class="inp" id="aj-email" type="email" value="${esc(D.email)}"></div>
+      <button class="btn" type="submit">Salvar e-mail</button>
+    </form>
+    <div class="acoes"><button class="btn ghost" data-a="teste-email" type="button">Enviar um resumo de teste agora</button></div>
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Senha da gerência</h2>
+    <form id="form-senha-nova" class="form" style="grid-template-columns:minmax(0,1fr) auto">
+      <div><label class="lbl" for="aj-senha">Nova senha</label><input class="inp" id="aj-senha" type="password" autocomplete="new-password" minlength="4"></div>
+      <button class="btn" type="submit">Trocar senha</button>
+    </form>
+  </section>`;
+}
+
+/* ================= render e ações ================= */
+function render(){
+  if (!D && S.modo === 'loja') return;
+  if (S.modo === 'loja') view.innerHTML = telaLoja();
+  else view.innerHTML = S.gerOk ? telaGerencia() : telaSenha();
+}
+function telaErro(t){ view.innerHTML = `<div class="card lock"><h2>Ops</h2><p>${esc(t)}</p><button class="btn" data-a="recarregar">Tentar de novo</button>${S.modo === 'loja' ? '<button class="btn ghost" data-a="sou-gerencia">Sou da gerência</button>' : ''}</div>`; }
+const ocupadoDigitando = () => { const a = document.activeElement; return (a && /INPUT|SELECT|TEXTAREA/.test(a.tagName)) || document.getElementById('dlg').innerHTML || S.ocupado || S.f.valor; };
+
+async function carregar(silencioso){
+  try {
+    if (S.modo === 'loja') usar(await call('apiLoja', S.token));
+    else { usar(await call('apiGer', S.senha, S.mes || '')); S.gerOk = true; }
+    render();
+  } catch(e) {
+    const [k, t] = msgErro(e);
+    if (k === 'SENHA') { S.gerOk = false; S.senha = ''; store.del('cota_senha'); S.erroSenha = t; render(); return; }
+    if (!silencioso) { if (D) toast(t); else telaErro(t); }
+  }
+}
+async function trocarMes(alvo){
+  if (alvo === S.mes) return;
+  const ok = await confirmar({
+    titulo: `Mudar para ${nomeMes(alvo)}?`,
+    corpo: alvo === MES_ATUAL ? `<p>Você vai voltar para o mês atual.</p>`
+      : `<div class="alerta warn">Você vai sair de ${nomeMes(S.mes)} e ver o resumo de ${nomeMes(alvo)}.</div><p>As lojas continuam lançando em ${nomeMesC(MES_ATUAL)}. Nada muda para elas.</p>`,
+    sim: `Sim, ver ${nomeMesC(alvo)}`, nao: `Ficar em ${nomeMesC(S.mes)}`
+  });
+  if (!ok) return;
+  S.mes = alvo; S.gv = 'rede'; S.msg = ''; S.f = { data:'', valor:0 };
+  view.innerHTML = `<div class="card carregando">Carregando ${nomeMes(alvo)}…</div>`;
+  await carregar();
+  window.scrollTo(0,0);
+}
+function copiar(id){
+  const inp = document.getElementById('lk-'+id);
+  const ok = () => toast('Link copiado. Agora é só colar no WhatsApp da loja.');
+  const fallback = () => { inp.focus(); inp.select(); try { document.execCommand('copy') ? ok() : toast('Segure o dedo no link e toque em Copiar.'); } catch(e){ toast('Segure o dedo no link e toque em Copiar.'); } };
+  try { navigator.clipboard.writeText(inp.value).then(ok, fallback); } catch(e){ fallback(); }
+}
+
+document.addEventListener('click', async e => {
+  const gv = e.target.closest('[data-gv]');
+  if (gv) { const v = gv.dataset.gv; S.gv = (v === 'rede' || v === 'cotas' || v === 'ajustes') ? v : +v; S.msg = ''; S.f = { data:'', valor:0 }; usar(D); render(); window.scrollTo(0,0); return; }
+  const a = e.target.closest('[data-a]');
+  if (a) {
+    const k = a.dataset.a;
+    if (k === 'sair') { S.gerOk = false; S.senha = ''; S.mes = ''; S.gv = 'rede'; store.del('cota_senha'); S.erroSenha = ''; render(); }
+    if (k === 'atualizar') { a.disabled = true; await carregar(); toast('Atualizado'); }
+    if (k === 'sou-gerencia') { if (await confirmar({ titulo:'Entrar como gerência?', corpo:'<p>Este aparelho deixa de abrir direto na tela da loja e passa a pedir a senha da gerência. Para voltar a ser da loja, abra de novo o link da loja.</p>', sim:'Sim, entrar como gerência' })) { try { localStorage.removeItem('cota_loja'); } catch(_){} location.href = BASE; } }
+    if (k === 'recarregar') { view.innerHTML = '<div class="card carregando">Carregando…</div>'; carregar(); }
+    if (k === 'mes') await trocarMes(addMes(S.mes, +a.dataset.v));
+    if (k === 'mes-atual') await trocarMes(MES_ATUAL);
+    if (k === 'copiar') copiar(a.dataset.id);
+    if (k === 'novo-link') {
+      const l = lojaById(+a.dataset.id);
+      if (await confirmar({ titulo:'Gerar novo link?', corpo:`<p>O link atual da <b>${esc(l.nome)}</b> para de funcionar na hora. Você vai precisar mandar o link novo para a loja.</p>`, sim:'Sim, gerar novo link', perigo:true })) {
+        try { usar(await call('apiGerNovoLink', S.senha, l.id, S.mes)); render(); toast('Link novo gerado. Copie e mande para a loja.'); } catch(er){ toast(msgErro(er)[1]); }
+      }
+    }
+    if (k === 'teste-email') {
+      a.disabled = true; a.textContent = 'Enviando…';
+      try { const para = await call('apiGerTesteResumo', S.senha); toast('Resumo enviado para ' + para); } catch(er){ toast(msgErro(er)[1]); }
+      a.disabled = false; a.textContent = 'Enviar um resumo de teste agora';
+    }
+    return;
+  }
+  const dd = e.target.closest('tr[data-dia]');
+  if (dd) {
+    const l = S.modo === 'loja' ? D.lojas[0] : lojaById(S.gv);
+    S.f = { data: dd.dataset.dia, valor: l.vendas[dd.dataset.dia] || 0 }; S.msg = '';
+    if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = dd.dataset.dia;
+    render(); window.scrollTo(0,0);
+    const i = document.getElementById('f-valor'); if (i) i.focus();
+  }
+});
+
+document.addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.id === 'form-venda') {
+    const l = S.modo === 'loja' ? D.lojas[0] : lojaById(+f.dataset.loja);
+    if (!S.f.valor) { const i = document.getElementById('f-valor'); i.closest('.money').classList.add('err'); i.focus(); return; }
+    if (!(await conferirVenda(l, S.f.data, S.f.valor))) { const i = document.getElementById('f-valor'); if (i) i.focus(); return; }
+    const era = l.vendas[S.f.data], dia = S.f.data, valor = S.f.valor;
+    S.ocupado = true; render();
+    try {
+      usar(S.modo === 'loja' ? await call('apiLojaLancar', S.token, dia, valor) : await call('apiGerLancar', S.senha, l.id, dia, valor, S.mes));
+      S.f = { data: dia, valor: 0 };
+      S.msg = era != null && era !== valor ? `✓ Venda de ${dataBR(dia)} trocada: ${brl(era)} → ${brl(valor)}.` : `✓ Venda lançada: ${brl(valor)} em ${dataBR(dia)}.`;
+    } catch(er) { toast(msgErro(er)[1]); }
+    S.ocupado = false; render();
+  }
+  if (f.id === 'form-senha') {
+    const senha = document.getElementById('senha').value, lembrar = document.getElementById('lembrar').checked;
+    if (!senha) return;
+    S.ocupado = true; S.erroSenha = ''; render();
+    try { S.senha = senha; usar(await call('apiGer', senha, '')); S.gerOk = true; store.set('cota_senha', senha, lembrar); }
+    catch(er) { S.senha = ''; S.erroSenha = msgErro(er)[1]; }
+    S.ocupado = false; render();
+  }
+  if (f.id === 'form-cotas') {
+    const itens = D.lojas.map(l => ({ id: l.id, nome: document.getElementById('n-'+l.id).value.trim(), cota: +document.getElementById('c-'+l.id).dataset.c }));
+    S.ocupado = true; render();
+    try { usar(await call('apiGerSalvar', S.senha, S.mes, itens)); S.msg = '✓ Nomes e cotas salvos. As lojas já veem os valores novos.'; }
+    catch(er) { toast(msgErro(er)[1]); }
+    S.ocupado = false; render();
+  }
+  if (f.id === 'form-email') {
+    const em = document.getElementById('aj-email').value.trim();
+    try { await call('apiGerAjustes', S.senha, em, ''); D.email = em; toast('E-mail salvo. O resumo das 22h30 vai para ' + em); } catch(er){ toast(msgErro(er)[1]); }
+  }
+  if (f.id === 'form-senha-nova') {
+    const ns = document.getElementById('aj-senha').value;
+    if (ns.length < 4) return toast(ERROS.SENHA_CURTA);
+    try { await call('apiGerAjustes', S.senha, '', ns); S.senha = ns; store.set('cota_senha', ns, !!store.get('cota_senha')); D.senhaPadrao = false; render(); toast('Senha trocada.'); } catch(er){ toast(msgErro(er)[1]); }
+  }
+});
+// máscara de dinheiro: os dígitos entram pela direita (1 = 0,01; 1 e 0 = 0,10)
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'f-valor' || el.classList.contains('mask')) {
+    const d = el.value.replace(/\D/g,'').replace(/^0+/,'').slice(0,12);
+    const c = d ? parseInt(d,10) : 0;
+    el.value = brlN(c);
+    if (el.id === 'f-valor') { S.f.valor = c; el.closest('.money').classList.remove('err'); } else el.dataset.c = c;
+    try { el.setSelectionRange(el.value.length, el.value.length); } catch(_){}
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.id === 'f-data') { if (!el.value) return; S.f.data = el.value; S.msg = ''; S.f.valor = 0; if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = el.value; render(); }
+  if (el.id === 'g-data') { if (!el.value || !el.value.startsWith(MES_ATUAL) || el.value > HOJE) return; S.ref = el.value; render(); }
+});
+document.addEventListener('focusin', e => {
+  const el = e.target;
+  // ao tocar num valor já preenchido, ele fica todo selecionado: o primeiro número digitado substitui o valor
+  if (el.id === 'f-valor' || (el.classList && el.classList.contains('mask'))) setTimeout(() => { try { if (/[1-9]/.test(el.value)) el.select(); else el.setSelectionRange(el.value.length, el.value.length); } catch(_){} }, 0);
+  if (el.readOnly && el.id && el.id.indexOf('lk-') === 0) el.select();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const n = document.getElementById('dlg-nao'); if (n) n.click(); } });
+
+// atualização automática: gerência a cada 1 minuto, loja a cada 2 minutos (não interrompe quem está digitando)
+setInterval(() => { if (document.hidden || ocupadoDigitando()) return; if (S.modo === 'loja' || S.gerOk) carregar(true); }, S.modo === 'loja' ? 120000 : 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && (S.modo === 'loja' || S.gerOk) && !ocupadoDigitando()) carregar(true); });
+
+/* início */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(API) && !/^http:\/\/localhost/.test(API)) {
+  view.innerHTML = `<div class="card lock"><h2>Falta ligar à planilha</h2><p>Abra o arquivo <b>config.js</b> no GitHub e cole o link da planilha (o que termina em <b>/exec</b>) entre as aspas.</p></div>`;
+} else if (S.modo === 'loja') carregar();
+else { const s = store.get('cota_senha'); if (s) { S.senha = s; carregar(); } else render(); }
+})();
+</script>
+
+</body>
+</html>
