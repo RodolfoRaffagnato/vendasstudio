@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cota por Loja</title>
-<meta name="theme-color" content="#111a2e">
+<meta name="theme-color" content="#3f687e">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -202,6 +202,12 @@ tfoot td{font-weight:800;border-bottom:0;border-top:2px solid var(--ink)}
   padding:12px 18px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;max-width:calc(100% - 32px);text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%)}
 .loja-app h2{margin-top:0}
+.instalar{background:var(--accent);color:var(--on-accent);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.instalar b{font-family:var(--f-display);font-size:1.5rem;text-transform:uppercase;letter-spacing:.02em}
+.instalar p{margin:0;font-weight:500}
+.instalar ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px;font-weight:600}
+.instalar .btn{background:var(--on-accent);color:var(--accent);font-size:1.15rem;min-height:58px}
+.instalar .lnk{color:inherit;opacity:.85;align-self:flex-start}
 </style>
 </head>
 <body>
@@ -614,11 +620,39 @@ function gerAjustes(){
   </section>`;
 }
 
+/* ================= instalar como aplicativo ================= */
+let promptInstalar = null;
+const instalado = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch(e){ return false; } };
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const ehAndroid = /android/i.test(navigator.userAgent);
+const dentroDeApp = /FBAN|FBAV|Instagram|WhatsApp|; wv\)|Line\//i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; render(); });
+window.addEventListener('appinstalled', () => { promptInstalar = null; try { localStorage.setItem('cota_instalado','1'); } catch(_){} toast('Aplicativo instalado! Agora abra pelo ícone Cota na tela do celular.'); render(); });
+function bannerInstalar(){
+  let dispensado = false; try { dispensado = localStorage.getItem('cota_instalado') === '1'; } catch(_){}
+  if (instalado() || dispensado) return '';
+  const quem = S.modo === 'loja' && D && D.lojas[0] ? 'da ' + esc(D.lojas[0].nome) : 'da gerência';
+  if (promptInstalar) return `<section class="instalar"><b>Instale o aplicativo</b>
+    <p>Fica com o ícone Cota na tela do celular e abre direto na tela ${quem}.</p>
+    <button class="btn" data-a="instalar">📲 Instalar aplicativo</button></section>`;
+  if (ehIOS) return `<section class="instalar"><b>Coloque na tela de início</b>
+    <ol><li>Abra este link no <u>Safari</u>.</li><li>Toque no botão Compartilhar (quadrado com seta para cima).</li><li>Toque em <u>Adicionar à Tela de Início</u> e depois em Adicionar.</li></ol>
+    <button class="lnk" data-a="ja-instalei">Já fiz isso</button></section>`;
+  if (dentroDeApp) return `<section class="instalar"><b>Abra no Chrome para instalar</b>
+    <p>Este link abriu dentro de outro aplicativo (como o WhatsApp), que não consegue instalar.</p>
+    <ol><li>Toque nos três pontinhos ⋮ no canto de cima.</li><li>Toque em <u>Abrir no Chrome</u>.</li><li>No Chrome, toque em <u>Instalar aplicativo</u>.</li></ol></section>`;
+  if (ehAndroid) return `<section class="instalar"><b>Instale o aplicativo</b>
+    <ol><li>Toque nos três pontinhos ⋮ do Chrome, no canto de cima.</li><li>Toque em <u>Instalar app</u>. Se só aparecer "Adicionar à tela inicial", toque nele e escolha <u>Instalar</u>.</li></ol>
+    <button class="lnk" data-a="ja-instalei">Já instalei</button></section>`;
+  return '';
+}
+
 /* ================= render e ações ================= */
 function render(){
   if (!D && S.modo === 'loja') return;
-  if (S.modo === 'loja') view.innerHTML = telaLoja();
-  else view.innerHTML = S.gerOk ? telaGerencia() : telaSenha();
+  const b = bannerInstalar();
+  if (S.modo === 'loja') view.innerHTML = b + telaLoja();
+  else view.innerHTML = b + (S.gerOk ? telaGerencia() : telaSenha());
 }
 function telaErro(t){ view.innerHTML = `<div class="card lock"><h2>Ops</h2><p>${esc(t)}</p><button class="btn" data-a="recarregar">Tentar de novo</button>${S.modo === 'loja' ? '<button class="btn ghost" data-a="sou-gerencia">Sou da gerência</button>' : ''}</div>`; }
 const ocupadoDigitando = () => { const a = document.activeElement; return (a && /INPUT|SELECT|TEXTAREA/.test(a.tagName)) || document.getElementById('dlg').innerHTML || S.ocupado || S.f.valor; };
@@ -663,6 +697,8 @@ document.addEventListener('click', async e => {
     const k = a.dataset.a;
     if (k === 'sair') { S.gerOk = false; S.senha = ''; S.mes = ''; S.gv = 'rede'; store.del('cota_senha'); S.erroSenha = ''; render(); }
     if (k === 'atualizar') { a.disabled = true; await carregar(); toast('Atualizado'); }
+    if (k === 'instalar' && promptInstalar) { const pr = promptInstalar; promptInstalar = null; pr.prompt(); try { await pr.userChoice; } catch(_){} render(); }
+    if (k === 'ja-instalei') { try { localStorage.setItem('cota_instalado','1'); } catch(_){} render(); }
     if (k === 'sou-gerencia') { if (await confirmar({ titulo:'Entrar como gerência?', corpo:'<p>Este aparelho deixa de abrir direto na tela da loja e passa a pedir a senha da gerência. Para voltar a ser da loja, abra de novo o link da loja.</p>', sim:'Sim, entrar como gerência' })) { try { localStorage.removeItem('cota_loja'); } catch(_){} location.href = BASE; } }
     if (k === 'recarregar') { view.innerHTML = '<div class="card carregando">Carregando…</div>'; carregar(); }
     if (k === 'mes') await trocarMes(addMes(S.mes, +a.dataset.v));
