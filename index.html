@@ -253,14 +253,16 @@ const store = {
   set(k,v,lembrar){ try { sessionStorage.setItem(k,v); if (lembrar) localStorage.setItem(k,v); } catch(e){} },
   del(k){ try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch(e){} }
 };
-function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),3000); }
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'), Math.max(3000, String(t).length*70)); }
 
 /* ---------- conversa com a planilha ---------- */
 async function call(fn){
   const args = Array.prototype.slice.call(arguments,1);
-  const r = await fetch(API, { method:'POST', body: JSON.stringify({ fn: fn, args: args }) });
-  if (!r.ok) throw new Error('REDE');
-  const j = await r.json();
+  let r;
+  try { r = await fetch(API, { method:'POST', body: JSON.stringify({ fn: fn, args: args }) }); }
+  catch(e) { throw new Error('REDE'); }
+  if (!r.ok) throw new Error('RESPOSTA_' + r.status);
+  let j; try { j = await r.json(); } catch(e) { throw new Error('RESPOSTA_INVALIDA'); }
   if (!j.ok) throw new Error(j.err || 'ERRO');
   return j.res;
 }
@@ -270,7 +272,17 @@ const ERROS = {
   VALOR_INVALIDO:'Digite um valor maior que zero.', EMAIL_INVALIDO:'Esse e-mail não parece certo. Confira e tente de novo.',
   SENHA_CURTA:'A senha precisa ter pelo menos 4 caracteres.', NOME_VAZIO:'Digite o nome da loja.'
 };
-function msgErro(e){ const m = String((e && e.message) || e); for (const k in ERROS) if (m.indexOf(k) >= 0) return [k, ERROS[k]]; return ['', 'Não foi possível falar com a planilha. Confira a internet e tente de novo.']; }
+Object.assign(ERROS, {
+  FUNCAO_INVALIDA:'A planilha ainda está com o código antigo. No Apps Script: Implantar > Gerenciar implantações > lápis > Versão: Nova versão > Implantar.',
+  RESPOSTA_INVALIDA:'A planilha respondeu com erro. Confira se o Código.gs foi colado inteiro, salve e publique uma Nova versão.',
+  LOJA_INVALIDA:'Essa loja não existe mais. Toque em Atualizar.',
+  REDE:'Sem conexão com a internet. Confira a internet e tente de novo.'
+});
+function msgErro(e){
+  const m = String((e && e.message) || e);
+  for (const k in ERROS) if (m.indexOf(k) >= 0) return [k, ERROS[k]];
+  return ['', 'A planilha respondeu: "' + m.slice(0, 160) + '". Mande um print desta mensagem para quem cuida do app.'];
+}
 
 /* ---------- estado ---------- */
 let D = null, HOJE = '', MES_ATUAL = '';
