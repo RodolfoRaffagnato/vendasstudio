@@ -208,6 +208,10 @@ tfoot td{font-weight:800;border-bottom:0;border-top:2px solid var(--ink)}
 .instalar ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px;font-weight:600}
 .instalar .btn{background:var(--on-accent);color:var(--accent);font-size:1.15rem;min-height:58px}
 .instalar .lnk{color:inherit;opacity:.85;align-self:flex-start}
+.linha-acao{grid-column:1/-1;margin:-2px 0 10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.dng-lnk{color:var(--bad)}
+.lr-inativa{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+select.inp{appearance:auto}
 </style>
 </head>
 <body>
@@ -264,7 +268,7 @@ const ERROS = {
   SENHA:'Senha incorreta.', LINK_INVALIDO:'Este link não é mais válido. Peça um link novo para a gerência.',
   DIA_INVALIDO:'Esse dia não pode ser lançado. A loja lança só dias do mês atual, até hoje.',
   VALOR_INVALIDO:'Digite um valor maior que zero.', EMAIL_INVALIDO:'Esse e-mail não parece certo. Confira e tente de novo.',
-  SENHA_CURTA:'A senha precisa ter pelo menos 4 caracteres.'
+  SENHA_CURTA:'A senha precisa ter pelo menos 4 caracteres.', NOME_VAZIO:'Digite o nome da loja.'
 };
 function msgErro(e){ const m = String((e && e.message) || e); for (const k in ERROS) if (m.indexOf(k) >= 0) return [k, ERROS[k]]; return ['', 'Não foi possível falar com a planilha. Confira a internet e tente de novo.']; }
 
@@ -279,6 +283,9 @@ function usar(d){
   S.ultima = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 const lojaById = id => D.lojas.find(l => l.id === id);
+// lojas que aparecem nos quadros: as ativas e as desativadas que tiveram venda no mês
+const LV = () => D.lojas.filter(l => l.ativa !== false || Object.keys(l.vendas).length);
+const ATIVAS = () => D.lojas.filter(l => l.ativa !== false);
 const cotaDe = (l,m) => (l.cotas && l.cotas[m]) || 0;
 
 /* ---------- cálculos ---------- */
@@ -368,6 +375,7 @@ function formVenda(l, min, max){
       <button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : existente != null ? 'Atualizar venda' : 'Lançar venda'}</button>
     </form>
     ${existente != null ? `<p class="aviso">Já existe venda lançada em ${dataBR(S.f.data)}: ${brl(existente)}. Se salvar, o app pede confirmação.</p>` : ''}
+    ${existente != null && S.modo === 'ger' ? `<div class="acoes"><button class="btn dng sm" type="button" data-a="apagar-venda" data-loja="${l.id}" data-dia="${S.f.data}">Apagar a venda de ${dataBR(S.f.data)}</button></div>` : ''}
     ${S.msg ? `<p class="ok-msg" role="status">${S.msg}</p>` : ''}`;
 }
 function painelAtual(l, c, ref){
@@ -438,14 +446,14 @@ function telaGerencia(){
     <div class="mesnav"><button data-a="mes" data-v="-1" ${m <= D.mesMin ? 'disabled' : ''} aria-label="Mês anterior">‹</button><b>${nomeMes(m)}</b><button data-a="mes" data-v="1" ${atual ? 'disabled' : ''} aria-label="Próximo mês">›</button></div>
     <nav class="tabs" aria-label="Seções">
       <button class="tab" aria-selected="${S.gv==='rede'}" data-gv="rede">${atual ? 'Rede' : 'Resumo do mês'}</button>
-      ${D.lojas.map(l => `<button class="tab" aria-selected="${S.gv===l.id}" data-gv="${l.id}">${esc(l.nome)}</button>`).join('')}
-      <button class="tab" aria-selected="${S.gv==='cotas'}" data-gv="cotas">✎ Nomes e cotas</button>
+      ${LV().map(l => `<button class="tab" aria-selected="${S.gv===l.id}" data-gv="${l.id}">${esc(l.nome)}</button>`).join('')}
+      <button class="tab" aria-selected="${S.gv==='cotas'}" data-gv="cotas">✎ Lojas e cotas</button>
       <button class="tab" aria-selected="${S.gv==='ajustes'}" data-gv="ajustes">🔗 Links e ajustes</button>
     </nav>
   </section>`;
   if (D.senhaPadrao) h += `<p class="aviso card" style="margin:0">A senha da gerência ainda é a padrão (1234). Troque em <b>Links e ajustes</b>.</p>`;
   if (!atual) h += `<div class="passado"><div><b>Você está vendo ${nomeMes(m)}</b><span>Mês encerrado. As lojas continuam lançando em ${nomeMesC(MES_ATUAL)}.</span></div><button class="btn sm" data-a="mes-atual">Voltar para ${nomeMesC(MES_ATUAL)}</button></div>`;
-  const semCota = D.lojas.filter(l => !cotaDe(l, m));
+  const semCota = ATIVAS().filter(l => !cotaDe(l, m));
   if (semCota.length && S.gv !== 'cotas' && S.gv !== 'ajustes') h += `<p class="aviso card" style="margin:0">Sem cota cadastrada em ${nomeMesC(m)}: ${semCota.map(l => esc(l.nome)).join(', ')}. <button class="lnk" data-gv="cotas">Cadastrar cotas</button></p>`;
   if (S.gv === 'rede') h += atual ? gerRede() : gerResumo();
   else if (S.gv === 'cotas') h += gerCotas();
@@ -454,7 +462,7 @@ function telaGerencia(){
   return h;
 }
 function totais(m, ref){
-  const cs = D.lojas.map(l => [l, calc(l, m, ref)]);
+  const cs = LV().map(l => [l, calc(l, m, ref)]);
   const T = cs.reduce((a,x) => { const c=x[1]; return { cota:a.cota+c.cota, cotaDia:a.cotaDia+c.cotaDia, vendaDia:a.vendaDia+(c.vendaDia||0), vendido:a.vendido+c.vendido, falta:a.falta+c.falta, proj:a.proj+c.proj }; }, {cota:0,cotaDia:0,vendaDia:0,vendido:0,falta:0,proj:0});
   T.pct = T.cota ? T.vendido/T.cota : 0;
   return [cs, T];
@@ -489,7 +497,7 @@ function gerRede(){
     <div class="mes-l"><div><span class="lbl">Se mantiver o ritmo atual, fecha o mês em</span><span class="big">${brl(T.proj)}</span> <span class="of">cota ${brl(T.cota)}</span></div><div class="big">${pctTxt(projPctT)}</div></div>
     <div class="facts">
       <div><b class="${projDiff>=0?'pos':'neg'}">${projDiff>=0?'+':'−'} ${brl(Math.abs(projDiff))}</b><span>${projDiff>=0?'Acima':'Abaixo'} da cota no fechamento</span></div>
-      <div><b>${nBate} de ${D.lojas.length}</b><span>Lojas com projeção de bater a cota</span></div>
+      <div><b>${nBate} de ${cs.length}</b><span>Lojas com projeção de bater a cota</span></div>
       <div><b>${brl(Math.round(T.proj/DIAS))}</b><span>Média diária atual da rede</span></div>
     </div>
     <p class="nota">Cálculo: média diária vendida até ${dataBR(ref)} × ${DIAS} dias do mês. Dias ainda sem lançamento não entram na média.</p>
@@ -538,7 +546,7 @@ function gerResumo(){
     <div class="mes-l"><div><span class="lbl">Vendido no mês</span><span class="big">${brl(T.vendido)}</span> <span class="of">de ${brl(T.cota)}</span></div><div class="big">${pctTxt(T.pct)}</div></div>
     ${regua({pct:T.pct, status:st, fechado:true})}
     <div class="facts">
-      <div><b>${bateram.length} de ${D.lojas.length}</b><span>Lojas que bateram a cota</span></div>
+      <div><b>${bateram.length} de ${cs.length}</b><span>Lojas que bateram a cota</span></div>
       <div><b>${melhor ? esc(melhor[0].nome) + ' · ' + pctTxt(melhor[1].pct) : '—'}</b><span>Melhor resultado</span></div>
       <div><b>${melhorDia ? dataBR(melhorDia[0]) + ' · ' + brl(melhorDia[1]) : '—'}</b><span>Melhor dia da rede</span></div>
     </div>
@@ -579,23 +587,42 @@ function gerLoja(l){
   return h + listaLanc(l, m, c);
 }
 function gerCotas(){
-  const m = S.mes;
+  const ativas = ATIVAS(), inativas = D.lojas.filter(l => l.ativa === false);
+  const cm = S.cotasMes || S.mes;
+  const cot = (S.cotasData && S.cotasData.mes === cm) ? S.cotasData.cotas : null;
+  const cotaV = l => cot ? (cot[l.id] || 0) : cotaDe(l, cm);
+  const opcoes = []; for (let x = D.mesMin; x <= addMes(MES_ATUAL, 3); x = addMes(x, 1)) opcoes.push(x);
   return `<section class="card">
-    <h2 class="sec-t">Nomes das lojas e cotas de ${nomeMesC(m)} <small>só a gerência altera</small></h2>
-    <p class="muted" style="margin:0 0 14px">A cota salva aqui vale para ${nomeMesC(m)} e para os meses seguintes, até você mudar de novo. As lojas veem a cota nova na próxima vez que abrirem o app.</p>
-    <form id="form-cotas"><div class="cotas-edit">${D.lojas.map(l => `
+    <h2 class="sec-t">Lojas e cotas <small>só a gerência altera</small></h2>
+    <div class="form" style="grid-template-columns:minmax(0,280px)"><div><label class="lbl" for="cotas-mes">Cotas do mês</label>
+      <select class="inp" id="cotas-mes">${opcoes.map(x => `<option value="${x}" ${x === cm ? 'selected' : ''}>${nomeMes(x)}${x === MES_ATUAL ? ' (atual)' : x > MES_ATUAL ? ' (próximo)' : ''}</option>`).join('')}</select></div></div>
+    <p class="muted" style="margin:12px 0 14px">A cota salva vale para ${nomeMes(cm)} e para os meses seguintes, até você mudar de novo. As lojas veem a cota nova na próxima vez que abrirem o app.</p>
+    <form id="form-cotas"><div class="cotas-edit">${ativas.map(l => `
       <div><label class="lbl" for="n-${l.id}">Nome da loja</label><input class="inp" id="n-${l.id}" value="${esc(l.nome)}" maxlength="60"></div>
-      <div><label class="lbl" for="c-${l.id}">Cota de ${nomeMesC(m)}</label><div class="money"><span>R$</span><input id="c-${l.id}" class="mask" data-c="${cotaDe(l,m)}" inputmode="numeric" value="${brlN(cotaDe(l,m))}"></div></div>`).join('')}
+      <div><label class="lbl" for="c-${l.id}">Cota de ${nomeMesC(cm)}</label><div class="money"><span>R$</span><input id="c-${l.id}" class="mask" data-c="${cotaV(l)}" inputmode="numeric" value="${brlN(cotaV(l))}"></div></div>
+      <div class="linha-acao"><button class="lnk dng-lnk" type="button" data-a="desativar" data-id="${l.id}">Desativar ${esc(l.nome)}</button></div>`).join('')}
     </div><div class="acoes"><button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : 'Salvar nomes e cotas'}</button></div>
     ${S.msg ? `<p class="ok-msg" role="status">${S.msg}</p>` : ''}</form>
-  </section>`;
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Adicionar loja</h2>
+    <form id="form-add-loja"><div class="cotas-edit">
+      <div><label class="lbl" for="nl-nome">Nome da loja nova</label><input class="inp" id="nl-nome" maxlength="60" placeholder="Ex.: Loja Barra"></div>
+      <div><label class="lbl" for="nl-cota">Cota de ${nomeMesC(cm)}</label><div class="money"><span>R$</span><input id="nl-cota" class="mask" data-c="0" inputmode="numeric" value="0,00"></div></div>
+    </div><div class="acoes"><button class="btn" type="submit">＋ Adicionar loja</button></div></form>
+    <p class="nota">A loja nova ganha um link próprio em Links e ajustes.</p>
+  </section>
+  ${inativas.length ? `<section class="card">
+    <h2 class="sec-t">Lojas desativadas <small>o link delas não funciona</small></h2>
+    <div class="links">${inativas.map(l => `<div class="lr-inativa"><b>${esc(l.nome)}</b><button class="btn sec sm" data-a="reativar" data-id="${l.id}" type="button">Reativar</button></div>`).join('')}</div>
+  </section>` : ''}`;
 }
 function gerAjustes(){
   const base = BASE;
   return `<section class="card">
     <h2 class="sec-t">Links das lojas</h2>
     <p class="muted" style="margin:0 0 14px">Mande cada link só para a loja certa. Quem tiver o link consegue lançar por aquela loja. Se um link cair em mãos erradas, gere um novo: o antigo para de funcionar na hora.</p>
-    <div class="links">${D.lojas.map(l => `<div class="linkrow">
+    <div class="links">${ATIVAS().map(l => `<div class="linkrow">
       <b>${esc(l.nome)}</b>
       <input class="inp" id="lk-${l.id}" readonly value="${esc(base + '?loja=' + l.codigo)}" aria-label="Link da ${esc(l.nome)}">
       <div class="acoes" style="margin:0"><button class="btn sec sm" data-a="copiar" data-id="${l.id}" type="button">Copiar</button><button class="btn ghost sm" data-a="novo-link" data-id="${l.id}" type="button">Gerar novo link</button></div>
@@ -677,7 +704,7 @@ async function trocarMes(alvo){
     sim: `Sim, ver ${nomeMesC(alvo)}`, nao: `Ficar em ${nomeMesC(S.mes)}`
   });
   if (!ok) return;
-  S.mes = alvo; S.gv = 'rede'; S.msg = ''; S.f = { data:'', valor:0 };
+  S.mes = alvo; S.gv = 'rede'; S.msg = ''; S.f = { data:'', valor:0 }; S.cotasMes = ''; S.cotasData = null;
   view.innerHTML = `<div class="card carregando">Carregando ${nomeMes(alvo)}…</div>`;
   await carregar();
   window.scrollTo(0,0);
@@ -691,12 +718,27 @@ function copiar(id){
 
 document.addEventListener('click', async e => {
   const gv = e.target.closest('[data-gv]');
-  if (gv) { const v = gv.dataset.gv; S.gv = (v === 'rede' || v === 'cotas' || v === 'ajustes') ? v : +v; S.msg = ''; S.f = { data:'', valor:0 }; usar(D); render(); window.scrollTo(0,0); return; }
+  if (gv) { const v = gv.dataset.gv; S.gv = (v === 'rede' || v === 'cotas' || v === 'ajustes') ? v : +v; S.msg = ''; S.cotasMes = ''; S.cotasData = null; S.f = { data:'', valor:0 }; usar(D); render(); window.scrollTo(0,0); return; }
   const a = e.target.closest('[data-a]');
   if (a) {
     const k = a.dataset.a;
     if (k === 'sair') { S.gerOk = false; S.senha = ''; S.mes = ''; S.gv = 'rede'; store.del('cota_senha'); S.erroSenha = ''; render(); }
     if (k === 'atualizar') { a.disabled = true; await carregar(); toast('Atualizado'); }
+    if (k === 'desativar') {
+      const l = lojaById(+a.dataset.id);
+      if (await confirmar({ titulo:`Desativar ${esc(l.nome)}?`, corpo:`<p>O link da loja para de funcionar e ela sai dos quadros e do e-mail diário. As vendas antigas continuam guardadas. Você pode reativar quando quiser.</p>`, sim:'Sim, desativar', perigo:true })) {
+        try { usar(await call('apiGerAtivar', S.senha, l.id, false, S.mes)); render(); toast(l.nome + ' desativada.'); } catch(er){ toast(msgErro(er)[1]); }
+      }
+    }
+    if (k === 'reativar') {
+      try { usar(await call('apiGerAtivar', S.senha, +a.dataset.id, true, S.mes)); render(); toast('Loja reativada. O link dela voltou a funcionar.'); } catch(er){ toast(msgErro(er)[1]); }
+    }
+    if (k === 'apagar-venda') {
+      const l = lojaById(+a.dataset.loja), dia = a.dataset.dia;
+      if (await confirmar({ titulo:`Apagar a venda de ${dataBR(dia)}?`, corpo:`<p>A venda de <b>${brl(l.vendas[dia])}</b> da <b>${esc(l.nome)}</b> em ${dataBR(dia)} será apagada. O dia volta a ficar sem lançamento.</p>`, sim:'Sim, apagar', nao:'Não, manter', perigo:true })) {
+        try { usar(await call('apiGerApagarVenda', S.senha, l.id, dia, S.mes)); S.f.valor = 0; S.msg = `✓ Venda de ${dataBR(dia)} apagada.`; render(); } catch(er){ toast(msgErro(er)[1]); }
+      }
+    }
     if (k === 'instalar' && promptInstalar) { const pr = promptInstalar; promptInstalar = null; pr.prompt(); try { await pr.userChoice; } catch(_){} render(); }
     if (k === 'ja-instalei') { try { localStorage.setItem('cota_instalado','1'); } catch(_){} render(); }
     if (k === 'sou-gerencia') { if (await confirmar({ titulo:'Entrar como gerência?', corpo:'<p>Este aparelho deixa de abrir direto na tela da loja e passa a pedir a senha da gerência. Para voltar a ser da loja, abra de novo o link da loja.</p>', sim:'Sim, entrar como gerência' })) { try { localStorage.removeItem('cota_loja'); } catch(_){} location.href = BASE; } }
@@ -752,11 +794,26 @@ document.addEventListener('submit', async e => {
     S.ocupado = false; render();
   }
   if (f.id === 'form-cotas') {
-    const itens = D.lojas.map(l => ({ id: l.id, nome: document.getElementById('n-'+l.id).value.trim(), cota: +document.getElementById('c-'+l.id).dataset.c }));
+    const cm = S.cotasMes || S.mes;
+    const itens = ATIVAS().map(l => ({ id: l.id, nome: document.getElementById('n-'+l.id).value.trim(), cota: +document.getElementById('c-'+l.id).dataset.c }));
     S.ocupado = true; render();
-    try { usar(await call('apiGerSalvar', S.senha, S.mes, itens)); S.msg = '✓ Nomes e cotas salvos. As lojas já veem os valores novos.'; }
+    try {
+      await call('apiGerSalvar', S.senha, cm, itens);
+      usar(await call('apiGer', S.senha, S.mes));
+      S.cotasData = await call('apiGerCotas', S.senha, cm);
+      S.msg = `✓ Nomes e cotas de ${nomeMesC(cm)} salvos. As lojas já veem os valores novos.`;
+    }
     catch(er) { toast(msgErro(er)[1]); }
     S.ocupado = false; render();
+  }
+  if (f.id === 'form-add-loja') {
+    const nome = document.getElementById('nl-nome').value.trim(), cota = +document.getElementById('nl-cota').dataset.c || 0;
+    if (!nome) { toast(ERROS.NOME_VAZIO); document.getElementById('nl-nome').focus(); return; }
+    try {
+      await call('apiGerAddLoja', S.senha, nome, cota, S.cotasMes || S.mes);
+      usar(await call('apiGer', S.senha, S.mes)); S.cotasData = null; render();
+      toast(nome + ' adicionada. Copie o link dela em Links e ajustes.');
+    } catch(er){ toast(msgErro(er)[1]); }
   }
   if (f.id === 'form-email') {
     const em = document.getElementById('aj-email').value.trim();
@@ -768,28 +825,60 @@ document.addEventListener('submit', async e => {
     try { await call('apiGerAjustes', S.senha, '', ns); S.senha = ns; store.set('cota_senha', ns, !!store.get('cota_senha')); D.senhaPadrao = false; render(); toast('Senha trocada.'); } catch(er){ toast(msgErro(er)[1]); }
   }
 });
-// máscara de dinheiro: os dígitos entram pela direita (1 = 0,01; 1 e 0 = 0,10)
-document.addEventListener('input', e => {
-  const el = e.target;
-  if (el.id === 'f-valor' || el.classList.contains('mask')) {
-    const d = el.value.replace(/\D/g,'').replace(/^0+/,'').slice(0,12);
-    const c = d ? parseInt(d,10) : 0;
-    el.value = brlN(c);
-    if (el.id === 'f-valor') { S.f.valor = c; el.closest('.money').classList.remove('err'); } else el.dataset.c = c;
-    try { el.setSelectionRange(el.value.length, el.value.length); } catch(_){}
+// máscara de dinheiro: os dígitos entram pela direita (1 = 0,01; 1 e 0 = 0,10),
+// não importa onde o cursor esteja. Ao tocar num valor já preenchido, o primeiro número substitui o valor.
+const ehDinheiro = el => el && (el.id === 'f-valor' || (el.classList && el.classList.contains('mask')));
+const centsDe = el => el.id === 'f-valor' ? (S.f.valor || 0) : (+el.dataset.c || 0);
+function poeCents(el, c){
+  c = Math.max(0, Math.min(c, 99999999999));
+  el.value = brlN(c);
+  if (el.id === 'f-valor') { S.f.valor = c; const m = el.closest('.money'); if (m) m.classList.remove('err'); } else el.dataset.c = c;
+  try { el.setSelectionRange(el.value.length, el.value.length); } catch(_){}
+  const pv = document.getElementById('prev-parc'); if (pv) pv.textContent = '';
+}
+document.addEventListener('beforeinput', e => {
+  const el = e.target; if (!ehDinheiro(el)) return;
+  const t = e.inputType;
+  if (t === 'insertText' || t === 'insertReplacementText') {
+    e.preventDefault();
+    const dig = String(e.data || '').replace(/\D/g, ''); if (!dig) return;
+    const base = el.dataset.novo === '1' ? 0 : centsDe(el); el.dataset.novo = '';
+    poeCents(el, parseInt(String(base) + dig, 10));
+  } else if (t === 'deleteContentBackward' || t === 'deleteContentForward' || t === 'deleteWordBackward') {
+    e.preventDefault();
+    const novo = el.dataset.novo === '1'; el.dataset.novo = '';
+    poeCents(el, novo ? 0 : Math.floor(centsDe(el) / 10));
+  } else if (t === 'insertFromPaste' || t === 'insertFromDrop') {
+    e.preventDefault();
+    const txt = String(e.data || (e.dataTransfer && e.dataTransfer.getData('text')) || '');
+    const n = txt.replace(/[^\d,]/g, ''); const [i, d = ''] = n.split(',');
+    poeCents(el, parseInt((i || '0') + (d + '00').slice(0, 2), 10) || 0); el.dataset.novo = '';
   }
+});
+// reserva: teclados que não avisam antes (alguns Android) — monta o valor pelos dígitos
+document.addEventListener('input', e => {
+  const el = e.target; if (!ehDinheiro(el)) return;
+  const d = el.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 11);
+  el.dataset.novo = '';
+  poeCents(el, d ? parseInt(d, 10) : 0);
 });
 document.addEventListener('change', e => {
   const el = e.target;
   if (el.id === 'f-data') { if (!el.value) return; S.f.data = el.value; S.msg = ''; S.f.valor = 0; if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = el.value; render(); }
+  if (el.id === 'cotas-mes') {
+    S.cotasMes = el.value; S.msg = '';
+    call('apiGerCotas', S.senha, el.value).then(r => { S.cotasData = r; render(); }).catch(er => toast(msgErro(er)[1]));
+    return;
+  }
   if (el.id === 'g-data') { if (!el.value || !el.value.startsWith(MES_ATUAL) || el.value > HOJE) return; S.ref = el.value; render(); }
 });
 document.addEventListener('focusin', e => {
   const el = e.target;
   // ao tocar num valor já preenchido, ele fica todo selecionado: o primeiro número digitado substitui o valor
-  if (el.id === 'f-valor' || (el.classList && el.classList.contains('mask'))) setTimeout(() => { try { if (/[1-9]/.test(el.value)) el.select(); else el.setSelectionRange(el.value.length, el.value.length); } catch(_){} }, 0);
+  if (ehDinheiro(el)) { el.dataset.novo = centsDe(el) ? '1' : ''; setTimeout(() => { try { el.setSelectionRange(el.value.length, el.value.length); } catch(_){} }, 0); }
   if (el.readOnly && el.id && el.id.indexOf('lk-') === 0) el.select();
 });
+document.addEventListener('click', e => { if (ehDinheiro(e.target)) { try { e.target.setSelectionRange(e.target.value.length, e.target.value.length); } catch(_){} } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const n = document.getElementById('dlg-nao'); if (n) n.click(); } });
 
 // atualização automática: gerência a cada 1 minuto, loja a cada 2 minutos (não interrompe quem está digitando)
