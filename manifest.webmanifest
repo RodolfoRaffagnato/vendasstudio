@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Cota por Loja",
   "short_name": "Cota",
-  "description": "Lançamento de vendas e acompanhamento de cota por loja",
+  "description": "Lançamento de vendas e acompanhamento de cota (lojas e gerência)",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",

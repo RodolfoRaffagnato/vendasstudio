@@ -178,6 +178,7 @@ tfoot td{font-weight:800;border-bottom:0;border-top:2px solid var(--ink)}
   .form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .form .btn{grid-column:1/-1}
   .form .f-valor{grid-column:1/-1;order:-1}
+  .form > div:first-child{grid-column:1/-1}
   .tiles{grid-template-columns:minmax(0,1fr)}
   .tile .v{font-size:2rem;overflow-wrap:normal}
   .troca{grid-template-columns:minmax(0,1fr)}
@@ -212,6 +213,56 @@ tfoot td{font-weight:800;border-bottom:0;border-top:2px solid var(--ink)}
 .dng-lnk{color:var(--bad)}
 .lr-inativa{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 select.inp{appearance:auto}
+.inicio{text-align:center;align-items:stretch}
+.logo-ini{width:96px;height:96px;border-radius:22px;align-self:center}
+.btn.grande{min-height:72px;font-size:1.25rem}
+.lista-lojas{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.inp.pin{font-size:2rem;letter-spacing:.6em;text-align:center;font-weight:800}
+.pinrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.pin-atual{color:var(--muted);font-weight:600}
+.pin-atual b{color:var(--ink);font-size:1.2rem;letter-spacing:.15em}
+.pin-edit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.pin-edit .inp{min-height:46px}
+.seg.tipo{display:flex;background:var(--track);border-radius:14px;padding:4px;gap:4px;margin-bottom:8px}
+.seg.tipo button{flex:1;border:0;background:transparent;border-radius:10px;min-height:52px;font-weight:700;color:var(--muted);font-size:1rem}
+.seg.tipo button.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.dica-tipo{margin:0 0 12px;font-size:.92rem}
+.form.fech{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.form.fech .nums,.form.fech .btn{grid-column:1/-1}
+.nums{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.inp.num{font-family:var(--f-display);font-size:1.5rem;font-weight:700;text-align:center}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:12px;background:var(--bg);min-width:0}
+.kpi b{font-family:var(--f-display);font-size:1.4rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi small{color:var(--muted);font-weight:600;font-size:.82rem}
+.loja-acao{display:flex;flex-direction:column;gap:14px;padding:20px}
+.dia-hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.dia-hdr .lbl{margin:0}
+.dia-t{font-family:var(--f-display);font-size:1.9rem;text-transform:uppercase;line-height:1.1;display:block}
+.dia-inp{width:auto;min-height:46px}
+.passos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.passos li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--track);color:var(--muted);font-weight:700;font-size:.95rem;line-height:1.2}
+.passos li span{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--surface);font-weight:800}
+.passos li.atual{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.passos li.atual span{background:var(--accent);color:var(--on-accent)}
+.passos li.feito{background:var(--ok-soft);color:var(--ok)}
+.passos li.feito span{background:var(--ok);color:var(--surface)}
+.passos li.bloq{opacity:.55}
+.passo{display:flex;flex-direction:column;gap:10px}
+.passo .lbl{margin:4px 0 0}
+.money.grande{min-height:72px}
+.money.grande input{font-size:2.4rem}
+.feito-linha{margin:0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--ok-soft);color:var(--ok);border-radius:12px;padding:10px 14px;font-weight:600}
+.feito-linha b{color:var(--ink)}
+.fechado{display:flex;flex-direction:column;gap:12px}
+.ok-titulo{margin:0;font-family:var(--f-display);font-size:1.5rem;text-transform:uppercase;color:var(--ok)}
+details.lanc summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:1.25rem;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;list-style:none}
+details.lanc summary::-webkit-details-marker{display:none}
+details.lanc summary::after{content:'▾';margin-left:auto}
+details.lanc[open] summary::after{content:'▴'}
+details.lanc summary small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted);font-size:.85rem}
+details.lanc[open] summary{margin-bottom:12px}
+.kpi small.pos{color:var(--ok)} .kpi small.neg{color:var(--bad)}
 </style>
 </head>
 <body>
@@ -233,10 +284,11 @@ const BOOT = (function(){
   try { t = new URLSearchParams(location.search).get('loja') || ''; } catch(e){}
   t = String(t).replace(/[^A-Za-z0-9]/g,'').slice(0,40);
   try { if (t) localStorage.setItem('cota_loja', t); else t = localStorage.getItem('cota_loja') || ''; } catch(e){}
-  return { modo: t ? 'loja' : 'ger', token: t };
+  const ger = window.MODO_GERENCIA || location.hash === '#gerencia';
+  return { modo: ger ? 'ger' : (t ? 'loja' : 'inicio'), token: ger ? '' : t };
 })();
 const API = (typeof API_URL === 'string' ? API_URL : '').trim();
-const BASE = location.origin + location.pathname.replace(/index\.html$/,'');
+const BASE = location.origin + location.pathname.replace(/(index|gerencia)\.html$/,'');
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const pad = n => String(n).padStart(2,'0');
 const diasDe = m => new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
@@ -268,9 +320,10 @@ async function call(fn){
 }
 const ERROS = {
   SENHA:'Senha incorreta.', LINK_INVALIDO:'Este link não é mais válido. Peça um link novo para a gerência.',
-  DIA_INVALIDO:'Esse dia não pode ser lançado. A loja lança só dias do mês atual, até hoje.',
+  DIA_INVALIDO:'A loja só lança o dia de hoje. Para corrigir um dia anterior, fale com a gerência.',
   VALOR_INVALIDO:'Digite um valor maior que zero.', EMAIL_INVALIDO:'Esse e-mail não parece certo. Confira e tente de novo.',
-  SENHA_CURTA:'A senha precisa ter pelo menos 4 caracteres.', NOME_VAZIO:'Digite o nome da loja.'
+  SENHA_CURTA:'A senha precisa ter pelo menos 4 caracteres.', PIN_ERRADO:'Senha da loja incorreta. Confira com a gerência.',
+  BLOQUEADO:'Muitas tentativas erradas. Espere 10 minutos ou peça a senha à gerência.', PIN_FORMATO:'A senha da loja precisa ter exatamente 4 números.', SEM_PARCIAL:'Lance primeiro a parcial das 17h deste dia.', NUMEROS_INVALIDOS:'Confira os números de atendimentos e vendas.', NOME_VAZIO:'Digite o nome da loja.'
 };
 Object.assign(ERROS, {
   FUNCAO_INVALIDA:'A planilha ainda está com o código antigo. No Apps Script: Implantar > Gerenciar implantações > lápis > Versão: Nova versão > Implantar.',
@@ -286,7 +339,7 @@ function msgErro(e){
 
 /* ---------- estado ---------- */
 let D = null, HOJE = '', MES_ATUAL = '';
-const S = { modo: BOOT.modo, token: BOOT.token, senha: '', gerOk:false, mes:'', ref:'', gv:'rede', f:{data:'',valor:0}, msg:'', erroSenha:'', ocupado:false, ultima:'' };
+const S = { lista:null, lojaEsc:null, pinErro:'', modo: BOOT.modo, token: BOOT.token, senha: '', gerOk:false, mes:'', ref:'', gv:'rede', f:{data:'',valor:0}, msg:'', erroSenha:'', ocupado:false, ultima:'' };
 const view = document.getElementById('view');
 function usar(d){
   D = d; HOJE = d.hoje; MES_ATUAL = d.mesAtual; S.mes = d.mes;
@@ -321,7 +374,14 @@ function calc(l, m, ref){
   const media = diasBase > 0 ? vendido / diasBase : 0;
   const proj = fechado ? vendido : Math.round(media * DIAS);
   const melhor = doMes.reduce((a,x) => !a || x[1] > a[1] ? x : a, null);
-  return { DIAS, cota, dia, cotaDia, vendaDia, vendido, falta, pct, esperado, restantes, porDia, status, media, proj, projPct: cota ? proj/cota : 0,
+  // parcial das 17h, atendimentos e número de vendas
+  const P = l.parcial || {}, A = l.atend || {}, Q = l.qtd || {};
+  const diasQ = Object.keys(Q).filter(d => d.startsWith(m) && d <= ref);
+  const atendMes = Object.keys(A).filter(d => d.startsWith(m) && d <= ref).reduce((a,d) => a + A[d], 0);
+  const qtdMes = diasQ.reduce((a,d) => a + Q[d], 0);
+  const vendQ = diasQ.reduce((a,d) => a + (l.vendas[d] || 0), 0);
+  const extra = { parcialDia: P[ref], atendDia: A[ref], qtdDia: Q[ref], atendMes, qtdMes, vendQ };
+  return { ...extra, DIAS, cota, dia, cotaDia, vendaDia, vendido, falta, pct, esperado, restantes, porDia, status, media, proj, projPct: cota ? proj/cota : 0,
     diasLanc: doMes.length, melhor, fechado, diffDia: vendaDia == null ? null : vendaDia - cotaDia };
 }
 
@@ -343,33 +403,37 @@ function confirmar(o){
     else el.querySelector('#dlg-nao').focus();
   });
 }
-async function conferirVenda(l, data, novo){
-  const m = data.slice(0,7), antigo = l.vendas[data], cotaDia = m === S.mes ? Math.round(cotaDe(l,m) / diasDe(m)) : 0;
-  if (antigo != null) {
-    if (antigo === novo) return true;
+async function conferirVenda(l, data, novo, tipo, atend, qtd){
+  const m = data.slice(0,7), cotaDia = m === S.mes ? Math.round(cotaDe(l,m) / diasDe(m)) : 0;
+  const parc = (l.parcial || {})[data], tot = l.vendas[data];
+  const antigo = tipo === 'parcial' ? parc : tot;
+  const nomeTipo = tipo === 'parcial' ? 'a parcial das 17h' : 'o fechamento';
+  const avisos = [];
+  if (tipo === 'fechamento') {
+    if (parc != null && novo < parc) avisos.push(`A venda total (${brl(novo)}) está menor que a parcial das 17h (${brl(parc)}).`);
+    if (qtd > atend) avisos.push(`Há mais vendas (${qtd}) do que atendimentos (${atend}).`);
+  } else if (tot != null && novo > tot) avisos.push(`A parcial das 17h (${brl(novo)}) está maior que a venda total já lançada (${brl(tot)}).`);
+  if (antigo == null && cotaDia && (novo < cotaDia * (tipo === 'parcial' ? 0.05 : 0.15) || novo > cotaDia * 4))
+    avisos.push(`${brl(novo)} está muito ${novo < cotaDia ? 'abaixo' : 'acima'} da cota diária da ${esc(l.nome)} (${brl(cotaDia)}).`);
+  const lista = avisos.map(a => `<div class="alerta warn">${a}</div>`).join('');
+  if (antigo != null && antigo !== novo) {
     const r = novo / antigo, grande = r < 0.5 || r > 2;
     const varTxt = r < 1 ? `${(Math.round((1-r)*1000)/10).toLocaleString('pt-BR')}% menor` : `${(Math.round((r-1)*1000)/10).toLocaleString('pt-BR')}% maior`;
     return confirmar({
-      titulo: `Trocar a venda de ${dataBR(data)}?`,
-      corpo: `<p>Já existe uma venda lançada para a <b>${esc(l.nome)}</b> neste dia.</p>
+      titulo: `Trocar ${nomeTipo} de ${dataBR(data)}?`,
+      corpo: `<p>Já existe ${tipo === 'parcial' ? 'uma parcial das 17h lançada' : 'um fechamento lançado'} para a <b>${esc(l.nome)}</b> neste dia.</p>
         <div class="troca"><div><small>Lançado</small><b>${brl(antigo)}</b></div><span class="seta">→</span><div><small>Novo valor</small><b>${brl(novo)}</b></div></div>
-        ${grande ? `<div class="alerta">Atenção: o novo valor é ${varTxt} que o lançado. Confira se não faltou ou sobrou algum zero.</div>` : `<p class="muted">O novo valor é ${varTxt} que o lançado.</p>`}`,
+        ${grande ? `<div class="alerta">Atenção: o novo valor é ${varTxt} que o lançado. Confira se não faltou ou sobrou algum zero.</div>` : `<p class="muted">O novo valor é ${varTxt} que o lançado.</p>`}${lista}`,
       sim: `Sim, trocar para ${brl(novo)}`, nao: `Não, manter ${brl(antigo)}`, perigo: grande
     });
   }
-  if (cotaDia && (novo < cotaDia * 0.15 || novo > cotaDia * 4)) {
-    return confirmar({
-      titulo: 'Confira o valor',
-      corpo: `<div class="alerta warn">${brl(novo)} está muito ${novo < cotaDia ? 'abaixo' : 'acima'} da cota diária da ${esc(l.nome)} (${brl(cotaDia)}).</div><p>O valor está certo?</p>`,
-      sim: `Sim, lançar ${brl(novo)}`, nao: 'Corrigir o valor'
-    });
-  }
+  if (avisos.length) return confirmar({ titulo: 'Confira os números', corpo: lista + '<p>Está tudo certo?</p>', sim: 'Sim, está certo', nao: 'Corrigir' });
   return true;
 }
 
 /* ---------- pedaços de tela ---------- */
 function chipDia(c){
-  if (c.vendaDia == null) return `<span class="chip neu">Sem lançamento</span>`;
+  if (c.vendaDia == null) return c.parcialDia != null ? `<span class="chip warn">Parcial 17h: ${brl(c.parcialDia)} · falta o fechamento</span>` : `<span class="chip neu">Sem lançamento</span>`;
   return c.diffDia >= 0 ? `<span class="chip ok">▲ ${brl(c.diffDia)} acima da cota</span>` : `<span class="chip bad">▼ ${brl(-c.diffDia)} abaixo da cota</span>`;
 }
 function chipProj(p){ return p >= 1 ? `<span class="chip ok">Vai bater</span>` : p >= .95 ? `<span class="chip warn">Perto</span>` : `<span class="chip bad">Não bate</span>`; }
@@ -380,18 +444,72 @@ function regua(c){
   return `<div class="regua"><div class="fill ${c.status[0]}" style="width:${w}%"></div>
     <div class="mark ${pos}" style="left:calc(${m}% - 1px)"><b>Ritmo ideal: ${Math.round(m)}%</b></div></div>`;
 }
-function formVenda(l, min, max){
-  const existente = l.vendas[S.f.data];
-  return `<form class="form" id="form-venda" data-loja="${l.id}" novalidate>
-      <div><label class="lbl" for="f-data">Dia da venda</label>
-        <input class="inp" type="date" id="f-data" value="${S.f.data}" min="${min}" max="${max}"></div>
-      <div class="f-valor"><label class="lbl" for="f-valor">Valor vendido no dia</label>
-        <div class="money"><span>R$</span><input id="f-valor" inputmode="numeric" autocomplete="off" value="${brlN(S.f.valor)}"></div></div>
-      <button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : existente != null ? 'Atualizar venda' : 'Lançar venda'}</button>
-    </form>
-    ${existente != null ? `<p class="aviso">Já existe venda lançada em ${dataBR(S.f.data)}: ${brl(existente)}. Se salvar, o app pede confirmação.</p>` : ''}
-    ${existente != null && S.modo === 'ger' ? `<div class="acoes"><button class="btn dng sm" type="button" data-a="apagar-venda" data-loja="${l.id}" data-dia="${S.f.data}">Apagar a venda de ${dataBR(S.f.data)}</button></div>` : ''}
-    ${S.msg ? `<p class="ok-msg" role="status">${S.msg}</p>` : ''}`;
+function etapaDe(l, d){
+  const p = (l.parcial || {})[d], t = l.vendas[d];
+  return S.f.etapa || (p == null ? 'parcial' : t == null ? 'fechamento' : 'feito');
+}
+function formPassos(l, min, max, ger){
+  const d = S.f.data, A = l.atend || {}, Q = l.qtd || {};
+  const parc = (l.parcial || {})[d], tot = l.vendas[d], etapa = etapaDe(l, d);
+  const corrigindo = !!S.f.etapa && ((S.f.etapa === 'parcial' && parc != null) || (S.f.etapa === 'fechamento' && tot != null));
+  const st1 = parc != null ? 'feito' : 'atual';
+  const st2 = tot != null ? 'feito' : (parc != null || etapa === 'fechamento') ? 'atual' : 'bloq';
+  const cancelar = corrigindo ? `<button class="btn ghost" type="button" data-a="cancelar-correcao">Cancelar</button>` : '';
+  const dinheiro = `<div class="money grande"><span>R$</span><input id="f-valor" inputmode="numeric" autocomplete="off" value="${brlN(S.f.valor)}"></div>`;
+  let h = `<div class="dia-hdr"><div><span class="lbl">${esc(l.nome)}</span><b class="dia-t">${d === HOJE ? 'Hoje, ' : ''}${dataBR(d)}</b></div>
+      ${ger ? `<input class="inp dia-inp" type="date" id="f-data" value="${d}" min="${min}" max="${max}" aria-label="Escolher o dia">` : ''}</div>
+    <ol class="passos">
+      <li class="${st1}"><span>${st1 === 'feito' ? '✓' : '1'}</span>Parcial das 17h</li>
+      <li class="${st2}"><span>${st2 === 'feito' ? '✓' : '2'}</span>Fechamento do dia</li>
+    </ol>`;
+  if (etapa === 'parcial') {
+    h += `<form id="form-venda" class="passo" data-loja="${l.id}" data-tipo="parcial" novalidate>
+      <label class="lbl" for="f-valor">Quanto a loja vendeu até as 17h?</label>${dinheiro}
+      <button class="btn grande" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : corrigindo ? 'Salvar correção' : 'Lançar parcial'}</button>${cancelar}
+      ${ger && parc == null && tot == null ? `<button class="lnk" type="button" data-a="so-fechamento">Lançar só o fechamento (sem parcial)</button>` : ''}
+    </form>`;
+  } else if (etapa === 'fechamento') {
+    h += `${parc != null && !corrigindo ? `<p class="feito-linha"><span>✓ Parcial das 17h: <b>${brl(parc)}</b></span><button class="lnk" type="button" data-a="corrigir" data-v="parcial">Corrigir</button></p>` : ''}
+    <form id="form-venda" class="passo" data-loja="${l.id}" data-tipo="fechamento" novalidate>
+      <label class="lbl" for="f-valor">Venda total do dia</label>${dinheiro}
+      <div class="nums">
+        <div><label class="lbl" for="f-atend">Atendimentos</label><input class="inp num" id="f-atend" inputmode="numeric" autocomplete="off" value="${S.f.atend ?? ''}" placeholder="0"></div>
+        <div><label class="lbl" for="f-qtd">Vendas</label><input class="inp num" id="f-qtd" inputmode="numeric" autocomplete="off" value="${S.f.qtd ?? ''}" placeholder="0"></div>
+      </div>
+      <button class="btn grande" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : corrigindo ? 'Salvar correção' : 'Fechar o dia'}</button>${cancelar}
+    </form>`;
+  } else {
+    const cotaDia = Math.round(cotaDe(l, d.slice(0,7)) / diasDe(d.slice(0,7))), dif = tot - cotaDia;
+    const k = (rot, v, extra) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${extra || ''}</div>`;
+    h += `<div class="fechado"><p class="ok-titulo">✓ Dia fechado</p>
+      <div class="kpis">
+        ${k('Parcial 17h', parc != null ? brl(parc) : '—')}
+        ${k('Venda do dia', brl(tot), cotaDia ? `<small class="${dif >= 0 ? 'pos' : 'neg'}">${dif >= 0 ? '▲ ' + brl(dif) + ' acima' : '▼ ' + brl(-dif) + ' abaixo'} da cota</small>` : '')}
+        ${k('Atendimentos', nInt(A[d]))}${k('Vendas', nInt(Q[d]))}
+        ${k('Conversão', A[d] ? pctN(Q[d] || 0, A[d]) : '—')}${k('Ticket médio', Q[d] ? brl(Math.round(tot / Q[d])) : '—')}
+      </div>
+      <div class="acoes"><button class="btn sec sm" type="button" data-a="corrigir" data-v="parcial">Corrigir parcial</button><button class="btn sec sm" type="button" data-a="corrigir" data-v="fechamento">Corrigir fechamento</button></div>
+    </div>`;
+  }
+  if (ger && (parc != null || tot != null)) h += `<div class="acoes"><button class="btn dng sm" type="button" data-a="apagar-venda" data-loja="${l.id}" data-dia="${d}">Apagar os lançamentos de ${dataBR(d)}</button></div>`;
+  if (S.msg) h += `<p class="ok-msg" role="status">${S.msg}</p>`;
+  return h;
+}
+const nInt = n => n == null ? '—' : Number(n).toLocaleString('pt-BR');
+const pctN = (a, b) => b ? (Math.round(a / b * 1000) / 10).toLocaleString('pt-BR') + '%' : '—';
+function blocoAtend(c, ref, titulo, soMes){
+  const tDia = c.qtdDia ? brl(Math.round((c.vendaDia || 0) / c.qtdDia)) : '—';
+  const tMes = c.qtdMes ? brl(Math.round(c.vendQ / c.qtdMes)) : '—';
+  const k = (rot, v, sub) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  if (soMes) return `<section class="card"><h2 class="sec-t">${titulo || 'Atendimento'} <small>mês inteiro</small></h2><div class="kpis">
+    ${k('Atendimentos', nInt(c.atendMes))}${k('Vendas', nInt(c.qtdMes))}${k('Conversão', pctN(c.qtdMes, c.atendMes))}${k('Ticket médio', tMes)}</div></section>`;
+  return `<section class="card"><h2 class="sec-t">${titulo || 'Atendimento'} <small>dia ${dataBR(ref)} · embaixo, o mês até ${dataBR(ref)}</small></h2><div class="kpis">
+    ${k('Parcial 17h', c.parcialDia != null ? brl(c.parcialDia) : '—', c.parcialDia != null ? '' : 'não lançada')}
+    ${k('Atendimentos', nInt(c.atendDia), 'mês: ' + nInt(c.atendMes))}
+    ${k('Vendas', nInt(c.qtdDia), 'mês: ' + nInt(c.qtdMes))}
+    ${k('Conversão', c.atendDia ? pctN(c.qtdDia || 0, c.atendDia) : '—', 'mês: ' + pctN(c.qtdMes, c.atendMes))}
+    ${k('Ticket médio', tDia, 'mês: ' + tMes)}
+  </div></section>`;
 }
 function painelAtual(l, c, ref){
   const semCota = !c.cota ? `<p class="aviso">A cota deste mês ainda não foi cadastrada pela gerência.</p>` : '';
@@ -409,37 +527,50 @@ function painelAtual(l, c, ref){
         <div><b>${brl(Math.round(c.media))}</b><span>Média diária atual</span></div>
         <div><b>${c.diasLanc} de ${c.dia}</b><span>Dias com venda lançada</span></div>
       </div>
-    </section>`;
+    </section>
+    ${blocoAtend(c, ref)}`;
 }
-function listaLanc(l, m, c){
-  const linhas = Object.keys(l.vendas).filter(d => d.startsWith(m)).sort().reverse();
-  return `<section class="card">
-    <h2 class="sec-t">Lançamentos de ${nomeMesC(m)} <small>toque num dia para corrigir</small></h2>
+function listaLanc(l, m, c, recolhida){
+  const P = l.parcial || {}, A = l.atend || {}, Q = l.qtd || {};
+  const dias = Array.from(new Set(Object.keys(l.vendas).concat(Object.keys(P)))).filter(d => d.startsWith(m)).sort().reverse();
+  const abre = recolhida ? `<details class="card lanc"><summary>Lançamentos de ${nomeMesC(m)} <small>para corrigir um dia anterior, fale com a gerência</small></summary>` : `<section class="card">
+    <h2 class="sec-t">Lançamentos de ${nomeMesC(m)} <small>toque num dia para corrigir</small></h2>`;
+  return `${abre}
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Dia</th><th>Venda</th><th>Cota diária</th><th>Diferença</th></tr></thead>
-      <tbody>${linhas.length ? linhas.map(d => { const v = l.vendas[d], df = v - c.cotaDia;
-        return `<tr class="click" data-dia="${d}"><td>${dataBR(d)}</td><td>${brl(v)}</td><td>${brl(c.cotaDia)}</td><td class="${df>=0?'pos':'neg'}">${df>=0?'+':'−'} ${brl(Math.abs(df))}</td></tr>`; }).join('')
-        : '<tr><td colspan="4" class="vazio">Nenhuma venda lançada neste mês.</td></tr>'}</tbody>
+      <thead><tr><th>Dia</th><th>Parcial 17h</th><th>Venda do dia</th><th>Dif. cota</th><th>Atend.</th><th>Vendas</th><th>Conv.</th></tr></thead>
+      <tbody>${dias.length ? dias.map(d => { const v = l.vendas[d], df = v == null ? null : v - c.cotaDia;
+        return `<tr ${recolhida ? '' : `class="click" data-dia="${d}"`}><td>${dataBR(d)}</td><td>${P[d] != null ? brl(P[d]) : '—'}</td>
+          <td>${v != null ? `<b>${brl(v)}</b>` : '<span class="chip warn">falta fechamento</span>'}</td>
+          <td class="${df == null ? '' : df>=0?'pos':'neg'}">${df == null ? '—' : (df>=0?'+':'−') + ' ' + brl(Math.abs(df))}</td>
+          <td>${nInt(A[d])}</td><td>${nInt(Q[d])}</td><td>${A[d] ? pctN(Q[d] || 0, A[d]) : '—'}</td></tr>`; }).join('')
+        : '<tr><td colspan="7" class="vazio">Nenhum lançamento neste mês.</td></tr>'}</tbody>
     </table></div>
-  </section>`;
+  ${recolhida ? '</details>' : '</section>'}`;
 }
 
 /* ================= TELA DA LOJA ================= */
 function telaLoja(){
   const l = D.lojas[0];
-  const c = calc(l, MES_ATUAL, S.f.data);
-  return `<div class="loja-app">
-    <div class="card">
-      <h2>Lançar venda</h2>
-      <p class="muted" style="margin:0 0 16px">${esc(l.nome)} · ${nomeMes(MES_ATUAL)}</p>
-      ${formVenda(l, MES_ATUAL+'-01', HOJE)}
-      <p class="muted" style="margin:12px 0 0;font-size:.9rem">Errou o valor? Lance de novo no mesmo dia. O app mostra o valor anterior e pede confirmação antes de trocar.</p>
+  if (S.f.data !== HOJE) S.f = { data: HOJE, valor: 0 };
+  const c = calc(l, MES_ATUAL, HOJE);
+  const k = (rot, v, sub) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  return `<section class="card loja-acao">${formPassos(l, MES_ATUAL + '-01', HOJE, false)}</section>
+  <section class="card">
+    <h2 class="sec-t">Meu mês · ${nomeMesC(MES_ATUAL)} <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>
+    ${!c.cota ? '<p class="aviso">A cota deste mês ainda não foi cadastrada pela gerência.</p>' : ''}
+    <div class="mes-l"><div><span class="lbl">Vendido no mês</span><span class="big">${brl(c.vendido)}</span> <span class="of">de ${brl(c.cota)}</span></div><div class="big">${pctTxt(c.pct)}</div></div>
+    ${regua(c)}
+    <div class="kpis">
+      ${k('Falta para a cota', c.falta || !c.cota ? brl(c.falta) : 'Cota batida!')}
+      ${k('Precisa vender por dia', c.falta ? brl(c.porDia) : '—', c.falta ? `nos ${c.restantes} dias que restam` : '')}
+      ${k('Cota do dia', brl(c.cotaDia))}
+      ${k('Projeção do mês', brl(c.proj), pctTxt(c.projPct) + ' da cota')}
+      ${k('Conversão do mês', pctN(c.qtdMes, c.atendMes), nInt(c.qtdMes) + ' vendas em ' + nInt(c.atendMes) + ' atend.')}
+      ${k('Ticket médio do mês', c.qtdMes ? brl(Math.round(c.vendQ / c.qtdMes)) : '—')}
     </div>
-  </div>
-  ${painelAtual(l, c, S.f.data)}
-  ${listaLanc(l, MES_ATUAL, c)}
-  <p class="foot">Atualizado às ${S.ultima} · <button class="lnk" data-a="atualizar">Atualizar</button></p>
-  <p class="foot"><button class="lnk" data-a="sou-gerencia">Entrar como gerência neste aparelho</button></p>`;
+  </section>
+  ${listaLanc(l, MES_ATUAL, c, true)}
+  <p class="foot">Atualizado às ${S.ultima} · <button class="lnk" data-a="atualizar">Atualizar</button> · <button class="lnk" data-a="sair-loja">Sair desta loja</button></p>`;
 }
 
 /* ================= GERÊNCIA ================= */
@@ -451,6 +582,7 @@ function telaSenha(){
     <label class="chk"><input type="checkbox" id="lembrar" checked> Lembrar neste aparelho</label>
     ${S.erroSenha ? `<p class="erro">${S.erroSenha}</p>` : ''}
     <button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Entrando…' : 'Entrar'}</button>
+    <button class="btn ghost" type="button" data-a="voltar-inicio">Voltar</button>
   </form>`;
 }
 function telaGerencia(){
@@ -463,10 +595,10 @@ function telaGerencia(){
       <button class="tab" aria-selected="${S.gv==='rede'}" data-gv="rede">${atual ? 'Rede' : 'Resumo do mês'}</button>
       ${LV().map(l => `<button class="tab" aria-selected="${S.gv===l.id}" data-gv="${l.id}">${esc(l.nome)}</button>`).join('')}
       <button class="tab" aria-selected="${S.gv==='cotas'}" data-gv="cotas">✎ Lojas e cotas</button>
-      <button class="tab" aria-selected="${S.gv==='ajustes'}" data-gv="ajustes">🔗 Links e ajustes</button>
+      <button class="tab" aria-selected="${S.gv==='ajustes'}" data-gv="ajustes">🔑 Acesso e ajustes</button>
     </nav>
   </section>`;
-  if (D.senhaPadrao) h += `<p class="aviso card" style="margin:0">A senha da gerência ainda é a padrão (1234). Troque em <b>Links e ajustes</b>.</p>`;
+  if (D.senhaPadrao) h += `<p class="aviso card" style="margin:0">A senha da gerência ainda é a padrão (1234). Troque em <b>Acesso e ajustes</b>.</p>`;
   if (!atual) h += `<div class="passado"><div><b>Você está vendo ${nomeMes(m)}</b><span>Mês encerrado. As lojas continuam lançando em ${nomeMesC(MES_ATUAL)}.</span></div><button class="btn sm" data-a="mes-atual">Voltar para ${nomeMesC(MES_ATUAL)}</button></div>`;
   const semCota = ATIVAS().filter(l => !cotaDe(l, m));
   if (semCota.length && S.gv !== 'cotas' && S.gv !== 'ajustes') h += `<p class="aviso card" style="margin:0">Sem cota cadastrada em ${nomeMesC(m)}: ${semCota.map(l => esc(l.nome)).join(', ')}. <button class="lnk" data-gv="cotas">Cadastrar cotas</button></p>`;
@@ -478,7 +610,11 @@ function telaGerencia(){
 }
 function totais(m, ref){
   const cs = LV().map(l => [l, calc(l, m, ref)]);
-  const T = cs.reduce((a,x) => { const c=x[1]; return { cota:a.cota+c.cota, cotaDia:a.cotaDia+c.cotaDia, vendaDia:a.vendaDia+(c.vendaDia||0), vendido:a.vendido+c.vendido, falta:a.falta+c.falta, proj:a.proj+c.proj }; }, {cota:0,cotaDia:0,vendaDia:0,vendido:0,falta:0,proj:0});
+  const T = cs.reduce((a,x) => { const c=x[1]; return { cota:a.cota+c.cota, cotaDia:a.cotaDia+c.cotaDia, vendaDia:a.vendaDia+(c.vendaDia||0), vendido:a.vendido+c.vendido, falta:a.falta+c.falta, proj:a.proj+c.proj,
+    parcialDia: c.parcialDia != null ? (a.parcialDia || 0) + c.parcialDia : a.parcialDia, atendDia: c.atendDia != null ? (a.atendDia || 0) + c.atendDia : a.atendDia,
+    qtdDia: c.qtdDia != null ? (a.qtdDia || 0) + c.qtdDia : a.qtdDia, vendaDiaQ: a.vendaDiaQ + (c.qtdDia != null ? (c.vendaDia || 0) : 0),
+    atendMes:a.atendMes+c.atendMes, qtdMes:a.qtdMes+c.qtdMes, vendQ:a.vendQ+c.vendQ }; },
+    {cota:0,cotaDia:0,vendaDia:0,vendido:0,falta:0,proj:0,parcialDia:null,atendDia:null,qtdDia:null,vendaDiaQ:0,atendMes:0,qtdMes:0,vendQ:0});
   T.pct = T.cota ? T.vendido/T.cota : 0;
   return [cs, T];
 }
@@ -486,6 +622,7 @@ function gerRede(){
   const m = MES_ATUAL, ref = S.ref, DIAS = diasDe(m);
   const [cs, T] = totais(m, ref);
   const semLanc = cs.filter(x => x[1].vendaDia == null).map(x => x[0].nome);
+  const semParc = cs.filter(x => x[1].parcialDia == null).map(x => x[0].nome);
   const dia = +ref.slice(8,10), esp = dia/DIAS, rT = esp ? T.pct/esp : 1;
   const stT = T.pct >= 1 ? ['ok','Cota batida'] : rT >= 1 ? ['ok','No ritmo'] : rT >= .9 ? ['warn','Atenção'] : ['bad','Abaixo do ritmo'];
   const diffT = T.vendaDia - T.cotaDia, projPctT = T.cota ? T.proj/T.cota : 0, projDiff = T.proj - T.cota;
@@ -494,7 +631,20 @@ function gerRede(){
   <section class="card">
     <div class="form" style="grid-template-columns:minmax(0,240px)"><div><label class="lbl" for="g-data">Dia de referência</label>
       <input class="inp" type="date" id="g-data" value="${ref}" min="${m}-01" max="${HOJE}"></div></div>
-    ${semLanc.length ? `<p class="aviso">Sem lançamento em ${dataBR(ref)}: ${semLanc.map(esc).join(', ')}.</p>` : `<p class="ok-msg">Todas as lojas lançaram a venda de ${dataBR(ref)}.</p>`}
+    ${semParc.length ? `<p class="aviso">Sem parcial das 17h em ${dataBR(ref)}: ${semParc.map(esc).join(', ')}.</p>` : `<p class="ok-msg">Todas as lojas lançaram a parcial das 17h de ${dataBR(ref)}.</p>`}
+    ${semLanc.length ? `<p class="aviso">Sem fechamento em ${dataBR(ref)}: ${semLanc.map(esc).join(', ')}.</p>` : `<p class="ok-msg">Todas as lojas lançaram o fechamento de ${dataBR(ref)}.</p>`}
+  </section>
+  <section class="card">
+    <h2 class="sec-t">Lançamentos de ${dataBR(ref)} <small>parcial das 17h e fechamento</small></h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Loja</th><th>Parcial 17h</th><th>Fechamento</th><th>Situação</th></tr></thead>
+      <tbody>${cs.slice().sort((a,b) => (a[1].parcialDia != null) - (b[1].parcialDia != null) || (a[1].vendaDia != null) - (b[1].vendaDia != null)).map(x => { const l=x[0], c=x[1];
+        const st = c.parcialDia == null ? ['bad','Falta parcial'] : c.vendaDia == null ? ['warn','Falta fechamento'] : ['ok','Dia fechado'];
+        return `<tr class="click" data-gv="${l.id}"><td class="loja">${esc(l.nome)}</td>
+          <td>${c.parcialDia != null ? brl(c.parcialDia) : '—'}</td><td>${c.vendaDia != null ? `<b>${brl(c.vendaDia)}</b>` : '—'}</td>
+          <td><span class="chip ${st[0]}">${st[1]}</span></td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>Rede</td><td>${T.parcialDia != null ? brl(T.parcialDia) : '—'}</td><td>${brl(T.vendaDia)}</td><td></td></tr></tfoot>
+    </table></div>
   </section>
   <section class="tiles">
     <div class="tile"><span class="lbl">Venda do dia · rede</span><span class="v">${brl(T.vendaDia)}</span>
@@ -507,6 +657,7 @@ function gerRede(){
     <div class="mes-l"><div><span class="lbl">Vendido até ${dataBR(ref)}</span><span class="big">${brl(T.vendido)}</span> <span class="of">de ${brl(T.cota)}</span></div><div class="big">${pctTxt(T.pct)}</div></div>
     ${regua({pct:T.pct, esperado:esp, status:stT})}
   </section>
+  ${blocoAtend({ ...T, vendaDia: T.vendaDiaQ }, ref, 'Atendimento · rede')}
   <section class="card proj">
     <h2 class="sec-t">Projeção de fechamento · rede ${chipProj(projPctT)}</h2>
     <div class="mes-l"><div><span class="lbl">Se mantiver o ritmo atual, fecha o mês em</span><span class="big">${brl(T.proj)}</span> <span class="of">cota ${brl(T.cota)}</span></div><div class="big">${pctTxt(projPctT)}</div></div>
@@ -520,13 +671,15 @@ function gerRede(){
   <section class="card">
     <h2 class="sec-t">Por loja <small>toque numa loja para abrir e editar</small></h2>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Loja</th><th>Venda do dia</th><th>Cota diária</th><th>Vendido no mês</th><th>Cota do mês</th><th>Falta</th><th>%</th><th>Situação</th></tr></thead>
+      <thead><tr><th>Loja</th><th>Venda do dia</th><th>Cota diária</th><th>Vendido no mês</th><th>Cota do mês</th><th>Falta</th><th>%</th><th>Situação</th><th>Atend.</th><th>Vendas</th><th>Conv.</th><th>Ticket</th></tr></thead>
       <tbody>${cs.slice().sort((a,b) => b[1].pct - a[1].pct).map(x => { const l=x[0], c=x[1]; return `<tr class="click" data-gv="${l.id}">
         <td class="loja">${esc(l.nome)}</td>
         <td>${c.vendaDia == null ? '<span class="chip neu">Sem lançamento</span>' : `<span class="${c.diffDia>=0?'pos':'neg'}">${brl(c.vendaDia)}</span>`}</td>
         <td>${brl(c.cotaDia)}</td><td>${brl(c.vendido)}</td><td>${brl(c.cota)}</td><td>${brl(c.falta)}</td>
-        <td><b>${pctTxt(c.pct)}</b></td><td><span class="chip ${c.status[0]}">${c.status[1]}</span></td></tr>`; }).join('')}</tbody>
-      <tfoot><tr><td>Total</td><td>${brl(T.vendaDia)}</td><td>${brl(T.cotaDia)}</td><td>${brl(T.vendido)}</td><td>${brl(T.cota)}</td><td>${brl(T.falta)}</td><td>${pctTxt(T.pct)}</td><td></td></tr></tfoot>
+        <td><b>${pctTxt(c.pct)}</b></td><td><span class="chip ${c.status[0]}">${c.status[1]}</span></td>
+        <td>${nInt(c.atendDia)}</td><td>${nInt(c.qtdDia)}</td><td>${c.atendDia ? pctN(c.qtdDia || 0, c.atendDia) : '—'}</td><td>${c.qtdDia ? brl(Math.round((c.vendaDia || 0) / c.qtdDia)) : '—'}</td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>Total</td><td>${brl(T.vendaDia)}</td><td>${brl(T.cotaDia)}</td><td>${brl(T.vendido)}</td><td>${brl(T.cota)}</td><td>${brl(T.falta)}</td><td>${pctTxt(T.pct)}</td><td></td>
+        <td>${nInt(T.atendDia)}</td><td>${nInt(T.qtdDia)}</td><td>${T.atendDia ? pctN(T.qtdDia || 0, T.atendDia) : '—'}</td><td>${T.qtdDia ? brl(Math.round(T.vendaDiaQ / T.qtdDia)) : '—'}</td></tr></tfoot>
     </table></div>
   </section>
   <section class="card">
@@ -567,14 +720,25 @@ function gerResumo(){
     </div>
   </section>
   <section class="card">
+    <h2 class="sec-t">Atendimento · rede <small>mês inteiro</small></h2>
+    <div class="kpis">
+      <div class="kpi"><span class="lbl">Atendimentos</span><b>${nInt(T.atendMes)}</b></div>
+      <div class="kpi"><span class="lbl">Vendas</span><b>${nInt(T.qtdMes)}</b></div>
+      <div class="kpi"><span class="lbl">Conversão</span><b>${pctN(T.qtdMes, T.atendMes)}</b></div>
+      <div class="kpi"><span class="lbl">Ticket médio</span><b>${T.qtdMes ? brl(Math.round(T.vendQ / T.qtdMes)) : '—'}</b></div>
+    </div>
+  </section>
+  <section class="card">
     <h2 class="sec-t">Resultado por loja <small>toque numa loja para ver os dias</small></h2>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Loja</th><th>Vendido</th><th>Cota</th><th>Diferença</th><th>%</th><th>Dias lançados</th><th></th></tr></thead>
+      <thead><tr><th>Loja</th><th>Vendido</th><th>Cota</th><th>Diferença</th><th>%</th><th>Dias lançados</th><th></th><th>Atend.</th><th>Vendas</th><th>Conv.</th><th>Ticket</th></tr></thead>
       <tbody>${cs.slice().sort((a,b) => b[1].pct - a[1].pct).map(x => { const l=x[0], c=x[1], d = c.vendido - c.cota; return `<tr class="click" data-gv="${l.id}">
         <td class="loja">${esc(l.nome)}</td><td>${brl(c.vendido)}</td><td>${brl(c.cota)}</td>
         <td class="${d>=0?'pos':'neg'}">${d>=0?'+':'−'} ${brl(Math.abs(d))}</td><td><b>${pctTxt(c.pct)}</b></td><td>${c.diasLanc} de ${DIAS}</td>
-        <td><span class="chip ${c.status[0]}">${c.status[1]}</span></td></tr>`; }).join('')}</tbody>
-      <tfoot><tr><td>Rede</td><td>${brl(T.vendido)}</td><td>${brl(T.cota)}</td><td class="${res>=0?'pos':'neg'}">${res>=0?'+':'−'} ${brl(Math.abs(res))}</td><td>${pctTxt(T.pct)}</td><td></td><td></td></tr></tfoot>
+        <td><span class="chip ${c.status[0]}">${c.status[1]}</span></td>
+        <td>${nInt(c.atendMes)}</td><td>${nInt(c.qtdMes)}</td><td>${pctN(c.qtdMes, c.atendMes)}</td><td>${c.qtdMes ? brl(Math.round(c.vendQ / c.qtdMes)) : '—'}</td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>Rede</td><td>${brl(T.vendido)}</td><td>${brl(T.cota)}</td><td class="${res>=0?'pos':'neg'}">${res>=0?'+':'−'} ${brl(Math.abs(res))}</td><td>${pctTxt(T.pct)}</td><td></td><td></td>
+        <td>${nInt(T.atendMes)}</td><td>${nInt(T.qtdMes)}</td><td>${pctN(T.qtdMes, T.atendMes)}</td><td>${T.qtdMes ? brl(Math.round(T.vendQ / T.qtdMes)) : '—'}</td></tr></tfoot>
     </table></div>
   </section>`;
 }
@@ -582,8 +746,8 @@ function gerLoja(l){
   const m = S.mes, c = calc(l, m, m === MES_ATUAL ? S.ref : null);
   const max = m === MES_ATUAL ? HOJE : m + '-' + pad(c.DIAS);
   let h = `<section class="card">
-    <h2 class="sec-t">${esc(l.nome)} · lançar ou corrigir <small>a gerência pode editar qualquer dia</small></h2>
-    ${formVenda(l, m+'-01', max)}
+    <h2 class="sec-t">Lançar ou corrigir <small>a gerência pode editar qualquer dia</small></h2>
+    ${formPassos(l, m+'-01', max, true)}
   </section>`;
   if (!c.fechado) h += painelAtual(l, c, S.ref);
   else {
@@ -599,6 +763,7 @@ function gerLoja(l){
       </div>
     </section>`;
   }
+  if (c.fechado) h += blocoAtend(c, null, 'Atendimento', true);
   return h + listaLanc(l, m, c);
 }
 function gerCotas(){
@@ -625,24 +790,26 @@ function gerCotas(){
       <div><label class="lbl" for="nl-nome">Nome da loja nova</label><input class="inp" id="nl-nome" maxlength="60" placeholder="Ex.: Loja Barra"></div>
       <div><label class="lbl" for="nl-cota">Cota de ${nomeMesC(cm)}</label><div class="money"><span>R$</span><input id="nl-cota" class="mask" data-c="0" inputmode="numeric" value="0,00"></div></div>
     </div><div class="acoes"><button class="btn" type="submit">＋ Adicionar loja</button></div></form>
-    <p class="nota">A loja nova ganha um link próprio em Links e ajustes.</p>
+    <p class="nota">A loja nova ganha uma senha própria em <b>Acesso e ajustes</b>.</p>
   </section>
   ${inativas.length ? `<section class="card">
-    <h2 class="sec-t">Lojas desativadas <small>o link delas não funciona</small></h2>
+    <h2 class="sec-t">Lojas desativadas <small>não conseguem entrar no app</small></h2>
     <div class="links">${inativas.map(l => `<div class="lr-inativa"><b>${esc(l.nome)}</b><span class="acoes" style="margin:0"><button class="btn sec sm" data-a="reativar" data-id="${l.id}" type="button">Reativar</button><button class="btn ghost sm dng-lnk" data-a="excluir-loja" data-id="${l.id}" type="button">Excluir</button></span></div>`).join('')}</div>
   </section>` : ''}`;
 }
 function gerAjustes(){
   const base = BASE;
   return `<section class="card">
-    <h2 class="sec-t">Links das lojas</h2>
-    <p class="muted" style="margin:0 0 14px">Mande cada link só para a loja certa. Quem tiver o link consegue lançar por aquela loja. Se um link cair em mãos erradas, gere um novo: o antigo para de funcionar na hora.</p>
-    <div class="links">${ATIVAS().map(l => `<div class="linkrow">
-      <b>${esc(l.nome)}</b>
-      <input class="inp" id="lk-${l.id}" readonly value="${esc(base + '?loja=' + l.codigo)}" aria-label="Link da ${esc(l.nome)}">
-      <div class="acoes" style="margin:0"><button class="btn sec sm" data-a="copiar" data-id="${l.id}" type="button">Copiar</button><button class="btn ghost sm" data-a="novo-link" data-id="${l.id}" type="button">Gerar novo link</button></div>
+    <h2 class="sec-t">Acesso das lojas</h2>
+    <p class="muted" style="margin:0 0 12px">Todas as lojas usam o mesmo link. Cada loja entra com a própria senha de 4 números. Toque em <b>Copiar mensagem</b> e cole no WhatsApp da loja: já vai com o link, o passo a passo e a senha.</p>
+    <div class="linkrow"><b>Link do aplicativo</b><input class="inp" id="lk-app" readonly value="${esc(BASE)}"><div class="acoes" style="margin:0"><button class="btn sec sm" data-a="copiar-app" type="button">Copiar link</button></div></div>
+    <div class="links" style="margin-top:14px">${ATIVAS().map(l => `<div class="linkrow">
+      <div class="pinrow"><b>${esc(l.nome)}</b><span class="pin-atual">Senha: <b>${esc(l.pin || '----')}</b></span></div>
+      <div class="pin-edit"><input class="inp" id="pin-${l.id}" inputmode="numeric" maxlength="4" placeholder="Nova senha (4 números)" aria-label="Nova senha da ${esc(l.nome)}">
+        <button class="btn sec sm" data-a="salvar-pin" data-id="${l.id}" type="button">Salvar senha</button></div>
+      <div class="acoes" style="margin:0"><button class="btn sm" data-a="copiar-msg" data-id="${l.id}" type="button">Copiar mensagem</button><button class="btn ghost sm" data-a="gerar-pin" data-id="${l.id}" type="button">Gerar outra senha</button></div>
     </div>`).join('')}</div>
-    <p class="nota">Seu link da gerência: <b class="sel-all">${esc(base)}</b></p>
+    <p class="nota">Você entra pelo mesmo aplicativo, no botão <b>Gerência</b>.</p>
   </section>
   <section class="card">
     <h2 class="sec-t">Resumo diário por e-mail</h2>
@@ -671,6 +838,7 @@ const dentroDeApp = /FBAN|FBAV|Instagram|WhatsApp|; wv\)|Line\//i.test(navigator
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; render(); });
 window.addEventListener('appinstalled', () => { promptInstalar = null; try { localStorage.setItem('cota_instalado','1'); } catch(_){} toast('Aplicativo instalado! Agora abra pelo ícone Cota na tela do celular.'); render(); });
 function bannerInstalar(){
+  if (window.PROTOTIPO) return '';
   let dispensado = false; try { dispensado = localStorage.getItem('cota_instalado') === '1'; } catch(_){}
   if (instalado() || dispensado) return '';
   const quem = S.modo === 'loja' && D && D.lojas[0] ? 'da ' + esc(D.lojas[0].nome) : 'da gerência';
@@ -691,12 +859,44 @@ function bannerInstalar(){
 
 /* ================= render e ações ================= */
 function render(){
-  if (!D && S.modo === 'loja') return;
   const b = bannerInstalar();
-  if (S.modo === 'loja') view.innerHTML = b + telaLoja();
-  else view.innerHTML = b + (S.gerOk ? telaGerencia() : telaSenha());
+  if (S.modo === 'inicio') { view.innerHTML = b + telaInicio(); return; }
+  if (S.modo === 'escolher') { view.innerHTML = b + telaEscolher(); return; }
+  if (S.modo === 'pin') { view.innerHTML = b + telaPin(); const i = document.getElementById('pin'); if (i) i.focus(); return; }
+  if (S.modo === 'loja') { if (D) view.innerHTML = b + telaLoja(); return; }
+  view.innerHTML = b + (S.gerOk ? telaGerencia() : telaSenha());
 }
-function telaErro(t){ view.innerHTML = `<div class="card lock"><h2>Ops</h2><p>${esc(t)}</p><button class="btn" data-a="recarregar">Tentar de novo</button>${S.modo === 'loja' ? '<button class="btn ghost" data-a="sou-gerencia">Sou da gerência</button>' : ''}</div>`; }
+function telaErro(t){ view.innerHTML = `<div class="card lock"><h2>Ops</h2><p>${esc(t)}</p><button class="btn" data-a="recarregar">Tentar de novo</button>${S.modo === 'loja' ? '<button class="btn ghost" data-a="sair-loja">Sair desta loja</button>' : ''}</div>`; }
+function telaInicio(){
+  return `<section class="card lock inicio">
+    <img class="logo-ini" src="icons/icon-192.png" alt="Studio do Sono">
+    <h2>Cota por Loja</h2>
+    <p>Como você vai usar o app?</p>
+    <button class="btn grande" data-a="ir-loja">🏬 Sou loja</button>
+    <button class="btn grande sec" data-a="ir-ger">🔒 Gerência</button>
+  </section>`;
+}
+function telaEscolher(){
+  return `<section class="card lock">
+    <h2>Qual é a sua loja?</h2>
+    ${S.lista == null ? '<p class="carregando" style="padding:20px 0">Carregando as lojas…</p>'
+      : S.lista.length ? `<div class="lista-lojas">${S.lista.map(l => `<button class="btn sec grande" data-a="esc-loja" data-id="${l.id}">${esc(l.nome)}</button>`).join('')}</div>`
+      : '<p>Nenhuma loja cadastrada ainda. Fale com a gerência.</p>'}
+    <button class="btn ghost" data-a="voltar-inicio">Voltar</button>
+  </section>`;
+}
+function telaPin(){
+  const l = S.lojaEsc || {};
+  return `<form class="card lock" id="form-pin">
+    <h2>${esc(l.nome || '')}</h2>
+    <p>Digite a senha de 4 números da loja. Ela é pedida só uma vez neste aparelho.</p>
+    ${l.pinPrototipo ? `<p class="nota">Protótipo: a senha desta loja é <b>${esc(l.pinPrototipo)}</b>.</p>` : ''}
+    <div><label class="lbl" for="pin">Senha da loja</label><input class="inp pin" id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+    ${S.pinErro ? `<p class="erro">${S.pinErro}</p>` : ''}
+    <button class="btn grande" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Entrando…' : 'Entrar'}</button>
+    <button class="btn ghost" type="button" data-a="ir-loja">Escolher outra loja</button>
+  </form>`;
+}
 const ocupadoDigitando = () => { const a = document.activeElement; return (a && /INPUT|SELECT|TEXTAREA/.test(a.tagName)) || document.getElementById('dlg').innerHTML || S.ocupado || S.f.valor; };
 
 async function carregar(silencioso){
@@ -707,6 +907,7 @@ async function carregar(silencioso){
   } catch(e) {
     const [k, t] = msgErro(e);
     if (k === 'SENHA') { S.gerOk = false; S.senha = ''; store.del('cota_senha'); S.erroSenha = t; render(); return; }
+    if (k === 'LINK_INVALIDO' && S.modo === 'loja') { sairLoja(); toast('A senha da loja foi trocada ou a loja foi desativada. Entre de novo.'); return; }
     if (!silencioso) { if (D) toast(t); else telaErro(t); }
   }
 }
@@ -724,24 +925,63 @@ async function trocarMes(alvo){
   await carregar();
   window.scrollTo(0,0);
 }
-function copiar(id){
-  const inp = document.getElementById('lk-'+id);
-  const ok = () => toast('Link copiado. Agora é só colar no WhatsApp da loja.');
-  const fallback = () => { inp.focus(); inp.select(); try { document.execCommand('copy') ? ok() : toast('Segure o dedo no link e toque em Copiar.'); } catch(e){ toast('Segure o dedo no link e toque em Copiar.'); } };
-  try { navigator.clipboard.writeText(inp.value).then(ok, fallback); } catch(e){ fallback(); }
+function copiarTexto(txt, msgOk){
+  const ok = () => toast(msgOk || 'Copiado.');
+  const fallback = () => {
+    const t = document.createElement('textarea'); t.value = txt; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy') ? ok() : toast('Não consegui copiar. Segure o dedo no texto e copie.'); } catch(e){ toast('Não consegui copiar.'); }
+    t.remove();
+  };
+  try { navigator.clipboard.writeText(txt).then(ok, fallback); } catch(e){ fallback(); }
 }
-
+function msgLoja(l){
+  return `Aplicativo de vendas – ${l.nome}\n1) Abra este link no Chrome: ${BASE}\n2) Toque em "Instalar aplicativo"\n3) Toque em "Sou loja", escolha ${l.nome} e digite a senha ${l.pin}`;
+}
+function sairLoja(){
+  try { localStorage.removeItem('cota_loja'); } catch(_){}
+  S.token = ''; D = null; S.modo = 'inicio'; S.msg = ''; S.f = { data:'', valor:0 };
+  if (location.search) history.replaceState(null, '', BASE);
+  render();
+}
+async function carregarLista(){
+  S.lista = null; S.modo = 'escolher'; render();
+  try { S.lista = await call('apiListaLojas'); } catch(e){ toast(msgErro(e)[1]); S.lista = []; }
+  render();
+}
 document.addEventListener('click', async e => {
   const gv = e.target.closest('[data-gv]');
   if (gv) { const v = gv.dataset.gv; S.gv = (v === 'rede' || v === 'cotas' || v === 'ajustes') ? v : +v; S.msg = ''; S.cotasMes = ''; S.cotasData = null; S.f = { data:'', valor:0 }; usar(D); render(); window.scrollTo(0,0); return; }
   const a = e.target.closest('[data-a]');
   if (a) {
     const k = a.dataset.a;
-    if (k === 'sair') { S.gerOk = false; S.senha = ''; S.mes = ''; S.gv = 'rede'; store.del('cota_senha'); S.erroSenha = ''; render(); }
+    if (k === 'sair') { S.gerOk = false; S.senha = ''; S.mes = ''; S.gv = 'rede'; store.del('cota_senha'); S.erroSenha = ''; D = null; S.modo = 'inicio'; render(); }
+    if (k === 'corrigir') {
+      const l = S.modo === 'loja' ? D.lojas[0] : lojaById(S.gv), d = S.f.data, fech = a.dataset.v === 'fechamento';
+      S.f = { data: d, etapa: a.dataset.v, valor: (fech ? l.vendas[d] : (l.parcial || {})[d]) || 0, atend: fech ? ((l.atend || {})[d] ?? '') : '', qtd: fech ? ((l.qtd || {})[d] ?? '') : '' };
+      S.msg = ''; render(); const i = document.getElementById('f-valor'); if (i) i.focus(); return;
+    }
+    if (k === 'cancelar-correcao') { S.f = { data: S.f.data, valor: 0 }; S.msg = ''; render(); return; }
+    if (k === 'so-fechamento') { S.f = { data: S.f.data, etapa: 'fechamento', valor: 0 }; render(); return; }
+    if (k === 'trocar-dia') { S.trocaDia = true; render(); const i = document.getElementById('f-data'); if (i) i.focus(); return; }
+    if (k === 'ir-loja') await carregarLista();
+    if (k === 'esc-loja') { const l = (S.lista || []).find(x => x.id === +a.dataset.id); S.lojaEsc = l; S.pinErro = ''; S.modo = 'pin'; render(); }
+    if (k === 'ir-ger') { S.modo = 'ger'; S.erroSenha = ''; const sv = store.get('cota_senha'); if (sv) { S.senha = sv; view.innerHTML = '<div class="card carregando">Carregando…</div>'; carregar(); } else render(); }
+    if (k === 'voltar-inicio') { S.modo = 'inicio'; render(); }
+    if (k === 'sair-loja') { if (await confirmar({ titulo:'Sair desta loja?', corpo:'<p>Para entrar de novo, vai precisar da senha de 4 números da loja.</p>', sim:'Sim, sair' })) sairLoja(); }
+    if (k === 'copiar-app') copiarTexto(BASE, 'Link do app copiado.');
+    if (k === 'copiar-msg') { const l = lojaById(+a.dataset.id); copiarTexto(msgLoja(l), 'Mensagem copiada. Cole no WhatsApp da ' + l.nome + '.'); }
+    if (k === 'salvar-pin' || k === 'gerar-pin') {
+      const l = lojaById(+a.dataset.id);
+      const novo = k === 'salvar-pin' ? (document.getElementById('pin-' + l.id).value || '').replace(/\D/g,'') : '';
+      if (k === 'salvar-pin' && novo.length !== 4) { toast(ERROS.PIN_FORMATO); return; }
+      if (await confirmar({ titulo:`Trocar a senha da ${esc(l.nome)}?`, corpo:`<p>${novo ? `A senha nova será <b>${novo}</b>.` : 'O app vai criar uma senha nova aleatória.'} Os aparelhos que já estão na ${esc(l.nome)} vão precisar entrar de novo com a senha nova.</p>`, sim:'Sim, trocar a senha' })) {
+        try { usar(await call('apiGerSenhaLoja', S.senha, l.id, novo, S.mes)); render(); toast('Senha da ' + l.nome + ' trocada: ' + lojaById(l.id).pin); } catch(er){ toast(msgErro(er)[1]); }
+      }
+    }
     if (k === 'atualizar') { a.disabled = true; await carregar(); toast('Atualizado'); }
     if (k === 'desativar') {
       const l = lojaById(+a.dataset.id);
-      if (await confirmar({ titulo:`Desativar ${esc(l.nome)}?`, corpo:`<p>O link da loja para de funcionar e ela sai dos quadros e do e-mail diário. As vendas antigas continuam guardadas. Você pode reativar quando quiser.</p>`, sim:'Sim, desativar', perigo:true })) {
+      if (await confirmar({ titulo:`Desativar ${esc(l.nome)}?`, corpo:`<p>A loja não consegue mais entrar no app e sai dos quadros e do e-mail diário. As vendas antigas continuam guardadas. Você pode reativar quando quiser.</p>`, sim:'Sim, desativar', perigo:true })) {
         try { usar(await call('apiGerAtivar', S.senha, l.id, false, S.mes)); render(); toast(l.nome + ' desativada.'); } catch(er){ toast(msgErro(er)[1]); }
       }
     }
@@ -749,7 +989,7 @@ document.addEventListener('click', async e => {
       const l = lojaById(+a.dataset.id);
       const ok = await confirmar({
         titulo: `Excluir ${esc(l.nome)}?`,
-        corpo: `<div class="alerta">Isso não pode ser desfeito. A ${esc(l.nome)} some do app junto com todas as vendas e cotas dela, inclusive dos meses anteriores. O link dela para de funcionar.</div>
+        corpo: `<div class="alerta">Isso não pode ser desfeito. A ${esc(l.nome)} some do app junto com todas as vendas e cotas dela, inclusive dos meses anteriores. Ela não consegue mais entrar no app.</div>
           <p class="muted">Se a ideia é só parar de usar a loja, prefira <b>Desativar</b>: ela some dos quadros, mas as vendas ficam guardadas e você pode reativar depois.</p>`,
         sim: `Excluir ${esc(l.nome)} de vez`, nao: 'Cancelar', perigo: true, digitar: 'EXCLUIR'
       });
@@ -768,17 +1008,9 @@ document.addEventListener('click', async e => {
     }
     if (k === 'instalar' && promptInstalar) { const pr = promptInstalar; promptInstalar = null; pr.prompt(); try { await pr.userChoice; } catch(_){} render(); }
     if (k === 'ja-instalei') { try { localStorage.setItem('cota_instalado','1'); } catch(_){} render(); }
-    if (k === 'sou-gerencia') { if (await confirmar({ titulo:'Entrar como gerência?', corpo:'<p>Este aparelho deixa de abrir direto na tela da loja e passa a pedir a senha da gerência. Para voltar a ser da loja, abra de novo o link da loja.</p>', sim:'Sim, entrar como gerência' })) { try { localStorage.removeItem('cota_loja'); } catch(_){} location.href = BASE; } }
     if (k === 'recarregar') { view.innerHTML = '<div class="card carregando">Carregando…</div>'; carregar(); }
     if (k === 'mes') await trocarMes(addMes(S.mes, +a.dataset.v));
     if (k === 'mes-atual') await trocarMes(MES_ATUAL);
-    if (k === 'copiar') copiar(a.dataset.id);
-    if (k === 'novo-link') {
-      const l = lojaById(+a.dataset.id);
-      if (await confirmar({ titulo:'Gerar novo link?', corpo:`<p>O link atual da <b>${esc(l.nome)}</b> para de funcionar na hora. Você vai precisar mandar o link novo para a loja.</p>`, sim:'Sim, gerar novo link', perigo:true })) {
-        try { usar(await call('apiGerNovoLink', S.senha, l.id, S.mes)); render(); toast('Link novo gerado. Copie e mande para a loja.'); } catch(er){ toast(msgErro(er)[1]); }
-      }
-    }
     if (k === 'teste-email') {
       a.disabled = true; a.textContent = 'Enviando…';
       try { const para = await call('apiGerTesteResumo', S.senha); toast('Resumo enviado para ' + para); } catch(er){ toast(msgErro(er)[1]); }
@@ -789,10 +1021,10 @@ document.addEventListener('click', async e => {
   const dd = e.target.closest('tr[data-dia]');
   if (dd) {
     const l = S.modo === 'loja' ? D.lojas[0] : lojaById(S.gv);
-    S.f = { data: dd.dataset.dia, valor: l.vendas[dd.dataset.dia] || 0 }; S.msg = '';
+    const d = dd.dataset.dia;
+    S.f = { data: d, valor: 0 }; S.msg = ''; if (d !== HOJE) S.trocaDia = true;
     if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = dd.dataset.dia;
     render(); window.scrollTo(0,0);
-    const i = document.getElementById('f-valor'); if (i) i.focus();
   }
 });
 
@@ -801,15 +1033,36 @@ document.addEventListener('submit', async e => {
   const f = e.target;
   if (f.id === 'form-venda') {
     const l = S.modo === 'loja' ? D.lojas[0] : lojaById(+f.dataset.loja);
+    const tipo = f.dataset.tipo, fech = tipo === 'fechamento';
     if (!S.f.valor) { const i = document.getElementById('f-valor'); i.closest('.money').classList.add('err'); i.focus(); return; }
-    if (!(await conferirVenda(l, S.f.data, S.f.valor))) { const i = document.getElementById('f-valor'); if (i) i.focus(); return; }
-    const era = l.vendas[S.f.data], dia = S.f.data, valor = S.f.valor;
+    const atend = fech ? parseInt(S.f.atend, 10) : null, qtd = fech ? parseInt(S.f.qtd, 10) : null;
+    if (fech && isNaN(atend)) { toast('Digite o número de atendimentos do dia.'); document.getElementById('f-atend').focus(); return; }
+    if (fech && isNaN(qtd)) { toast('Digite o número de vendas do dia.'); document.getElementById('f-qtd').focus(); return; }
+    if (!(await conferirVenda(l, S.f.data, S.f.valor, tipo, atend, qtd))) { const i = document.getElementById('f-valor'); if (i) i.focus(); return; }
+    const dia = S.f.data, valor = S.f.valor, era = fech ? l.vendas[dia] : (l.parcial || {})[dia];
+    const dados = { tipo, valor, atend, qtd };
     S.ocupado = true; render();
     try {
-      usar(S.modo === 'loja' ? await call('apiLojaLancar', S.token, dia, valor) : await call('apiGerLancar', S.senha, l.id, dia, valor, S.mes));
+      usar(S.modo === 'loja' ? await call('apiLojaLancar', S.token, dia, dados) : await call('apiGerLancar', S.senha, l.id, dia, dados, S.mes));
       S.f = { data: dia, valor: 0 };
-      S.msg = era != null && era !== valor ? `✓ Venda de ${dataBR(dia)} trocada: ${brl(era)} → ${brl(valor)}.` : `✓ Venda lançada: ${brl(valor)} em ${dataBR(dia)}.`;
+      const nome = fech ? 'Fechamento' : 'Parcial das 17h';
+      if (!fech && era == null) { S.msg = `✓ Parcial lançada: ${brl(valor)}. Agora, no fim do dia, faça o fechamento.`; S.ocupado = false; render(); return; }
+      S.msg = era != null && era !== valor ? `✓ ${nome} de ${dataBR(dia)} trocado: ${brl(era)} → ${brl(valor)}.`
+        : `✓ ${nome} lançado: ${brl(valor)} em ${dataBR(dia)}${fech ? ` · ${atend} atendimentos · ${qtd} vendas` : ''}.`;
     } catch(er) { toast(msgErro(er)[1]); }
+    S.ocupado = false; render();
+  }
+  if (f.id === 'form-pin') {
+    const pin = (document.getElementById('pin').value || '').replace(/\D/g,'');
+    if (pin.length !== 4) { S.pinErro = ERROS.PIN_FORMATO; render(); return; }
+    S.ocupado = true; S.pinErro = ''; render();
+    try {
+      const r = await call('apiLojaEntrar', S.lojaEsc.id, pin);
+      try { localStorage.setItem('cota_loja', r.token); } catch(_){}
+      S.token = r.token; S.modo = 'loja'; S.ocupado = false;
+      view.innerHTML = '<div class="card carregando">Carregando…</div>';
+      await carregar(); return;
+    } catch(er) { S.pinErro = msgErro(er)[1]; }
     S.ocupado = false; render();
   }
   if (f.id === 'form-senha') {
@@ -889,9 +1142,13 @@ document.addEventListener('input', e => {
   el.dataset.novo = '';
   poeCents(el, d ? parseInt(d, 10) : 0);
 });
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'f-atend' || el.id === 'f-qtd') { const v = el.value.replace(/\D/g, '').slice(0, 5); el.value = v; S.f[el.id === 'f-atend' ? 'atend' : 'qtd'] = v; }
+});
 document.addEventListener('change', e => {
   const el = e.target;
-  if (el.id === 'f-data') { if (!el.value) return; S.f.data = el.value; S.msg = ''; S.f.valor = 0; if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = el.value; render(); }
+  if (el.id === 'f-data') { if (!el.value) return; S.f = { data: el.value, valor: 0 }; S.msg = ''; if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = el.value; render(); }
   if (el.id === 'cotas-mes') {
     S.cotasMes = el.value; S.msg = '';
     call('apiGerCotas', S.senha, el.value).then(r => { S.cotasData = r; render(); }).catch(er => toast(msgErro(er)[1]));
@@ -909,15 +1166,16 @@ document.addEventListener('click', e => { if (ehDinheiro(e.target)) { try { e.ta
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const n = document.getElementById('dlg-nao'); if (n) n.click(); } });
 
 // atualização automática: gerência a cada 1 minuto, loja a cada 2 minutos (não interrompe quem está digitando)
-setInterval(() => { if (document.hidden || ocupadoDigitando()) return; if (S.modo === 'loja' || S.gerOk) carregar(true); }, S.modo === 'loja' ? 120000 : 60000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && (S.modo === 'loja' || S.gerOk) && !ocupadoDigitando()) carregar(true); });
+const ativo = () => (S.modo === 'loja' && S.token) || (S.modo === 'ger' && S.gerOk);
+setInterval(() => { if (document.hidden || ocupadoDigitando()) return; if (ativo()) carregar(true); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && ativo() && !ocupadoDigitando()) carregar(true); });
 
 /* início */
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(API) && !/^http:\/\/localhost/.test(API)) {
   view.innerHTML = `<div class="card lock"><h2>Falta ligar à planilha</h2><p>Abra o arquivo <b>config.js</b> no GitHub e cole o link da planilha (o que termina em <b>/exec</b>) entre as aspas.</p></div>`;
 } else if (S.modo === 'loja') carregar();
-else { const s = store.get('cota_senha'); if (s) { S.senha = s; carregar(); } else render(); }
+else { const sv = store.get('cota_senha'); if (sv) { S.modo = 'ger'; S.senha = sv; carregar(); } else render(); }
 })();
 </script>
 
