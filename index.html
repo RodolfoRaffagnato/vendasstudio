@@ -263,6 +263,17 @@ details.lanc[open] summary::after{content:'▴'}
 details.lanc summary small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted);font-size:.85rem}
 details.lanc[open] summary{margin-bottom:12px}
 .kpi small.pos{color:var(--ok)} .kpi small.neg{color:var(--bad)}
+.status-dia{display:flex;gap:12px;align-items:center;border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.status-dia .ic{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.2rem}
+.status-dia b{display:block;font-size:1.1rem}
+.status-dia span:not(.ic){font-size:.92rem}
+.status-dia.bad{background:var(--bad-soft);color:var(--bad)} .status-dia.bad .ic{background:var(--bad);color:var(--surface)}
+.status-dia.warn{background:var(--warn-soft);color:var(--warn)} .status-dia.warn .ic{background:var(--warn);color:var(--surface)}
+.status-dia.ok{background:var(--ok-soft);color:var(--ok)} .status-dia.ok .ic{background:var(--ok);color:var(--surface)}
+details.editar{margin-top:8px}
+details.editar > summary{cursor:pointer;list-style:none;color:var(--muted);font-weight:600;font-size:.92rem;text-align:center;padding:12px;text-decoration:underline}
+details.editar > summary::-webkit-details-marker{display:none}
+details.editar[open] > summary{margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -534,7 +545,7 @@ function listaLanc(l, m, c, recolhida){
   const P = l.parcial || {}, A = l.atend || {}, Q = l.qtd || {};
   const dias = Array.from(new Set(Object.keys(l.vendas).concat(Object.keys(P)))).filter(d => d.startsWith(m)).sort().reverse();
   const abre = recolhida ? `<details class="card lanc"><summary>Lançamentos de ${nomeMesC(m)} <small>para corrigir um dia anterior, fale com a gerência</small></summary>` : `<section class="card">
-    <h2 class="sec-t">Lançamentos de ${nomeMesC(m)} <small>toque num dia para corrigir</small></h2>`;
+    <h2 class="sec-t">Lançamentos de ${nomeMesC(m)} <small>${m === MES_ATUAL ? 'toque num dia para ver o resumo dele' : 'toque num dia para corrigir'}</small></h2>`;
   return `${abre}
     <div class="tbl-wrap"><table>
       <thead><tr><th>Dia</th><th>Parcial 17h</th><th>Venda do dia</th><th>Dif. cota</th><th>Atend.</th><th>Vendas</th><th>Conv.</th></tr></thead>
@@ -549,16 +560,12 @@ function listaLanc(l, m, c, recolhida){
 }
 
 /* ================= TELA DA LOJA ================= */
-function telaLoja(){
-  const l = D.lojas[0];
-  if (S.f.data !== HOJE) S.f = { data: HOJE, valor: 0 };
-  const c = calc(l, MES_ATUAL, HOJE);
+function cardMes(c, titulo, rotulo){
   const k = (rot, v, sub) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
-  return `<section class="card loja-acao">${formPassos(l, MES_ATUAL + '-01', HOJE, false)}</section>
-  <section class="card">
-    <h2 class="sec-t">Meu mês · ${nomeMesC(MES_ATUAL)} <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>
-    ${!c.cota ? '<p class="aviso">A cota deste mês ainda não foi cadastrada pela gerência.</p>' : ''}
-    <div class="mes-l"><div><span class="lbl">Vendido no mês</span><span class="big">${brl(c.vendido)}</span> <span class="of">de ${brl(c.cota)}</span></div><div class="big">${pctTxt(c.pct)}</div></div>
+  return `<section class="card">
+    <h2 class="sec-t">${titulo} <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>
+    ${!c.cota ? '<p class="aviso">A cota deste mês ainda não foi cadastrada.</p>' : ''}
+    <div class="mes-l"><div><span class="lbl">${rotulo}</span><span class="big">${brl(c.vendido)}</span> <span class="of">de ${brl(c.cota)}</span></div><div class="big">${pctTxt(c.pct)}</div></div>
     ${regua(c)}
     <div class="kpis">
       ${k('Falta para a cota', c.falta || !c.cota ? brl(c.falta) : 'Cota batida!')}
@@ -568,7 +575,34 @@ function telaLoja(){
       ${k('Conversão do mês', pctN(c.qtdMes, c.atendMes), nInt(c.qtdMes) + ' vendas em ' + nInt(c.atendMes) + ' atend.')}
       ${k('Ticket médio do mês', c.qtdMes ? brl(Math.round(c.vendQ / c.qtdMes)) : '—')}
     </div>
-  </section>
+  </section>`;
+}
+// resumo do dia de uma loja (só leitura), com aviso quando falta lançamento
+function resumoDiaLoja(l, ref){
+  const parc = (l.parcial || {})[ref], tot = l.vendas[ref], A = (l.atend || {})[ref], Q = (l.qtd || {})[ref];
+  const m = ref.slice(0,7), cotaDia = Math.round(cotaDe(l, m) / diasDe(m)), dif = tot == null ? null : tot - cotaDia;
+  const quando = ref === HOJE ? 'hoje' : 'em ' + dataBR(ref);
+  const st = parc == null && tot == null ? ['bad', '!', `${esc(l.nome)} não lançou nada ${quando}`, 'Nem a parcial das 17h, nem o fechamento. Avise a loja.']
+    : tot == null ? ['warn', '!', `${esc(l.nome)} lançou só a parcial ${quando}`, 'Ainda falta o fechamento do dia.']
+    : ['ok', '✓', 'Dia fechado', parc == null ? 'Fechamento lançado sem a parcial das 17h.' : 'Parcial e fechamento lançados.'];
+  const k = (rot, v, sub) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${sub || ''}</div>`;
+  return `<section class="card">
+    <div class="status-dia ${st[0]}"><span class="ic">${st[1]}</span><div><b>${st[2]}</b><span>${st[3]}</span></div></div>
+    <div class="kpis">
+      ${k('Parcial 17h', parc != null ? brl(parc) : '—')}
+      ${k('Venda do dia', tot != null ? brl(tot) : '—', dif != null && cotaDia ? `<small class="${dif >= 0 ? 'pos' : 'neg'}">${dif >= 0 ? '▲ ' + brl(dif) + ' acima' : '▼ ' + brl(-dif) + ' abaixo'} da cota</small>` : `<small>cota do dia ${brl(cotaDia)}</small>`)}
+      ${k('Atendimentos', nInt(A))}${k('Vendas', nInt(Q))}
+      ${k('Conversão', A ? pctN(Q || 0, A) : '—')}${k('Ticket médio', Q && tot != null ? brl(Math.round(tot / Q)) : '—')}
+    </div>
+  </section>`;
+}
+function telaLoja(){
+  const l = D.lojas[0];
+  if (S.f.data !== HOJE) S.f = { data: HOJE, valor: 0 };
+  const c = calc(l, MES_ATUAL, HOJE);
+  const k = (rot, v, sub) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  return `<section class="card loja-acao">${formPassos(l, MES_ATUAL + '-01', HOJE, false)}</section>
+  ${cardMes(c, 'Meu mês · ' + nomeMesC(MES_ATUAL), 'Vendido no mês')}
   ${listaLanc(l, MES_ATUAL, c, true)}
   <p class="foot">Atualizado às ${S.ultima} · <button class="lnk" data-a="atualizar">Atualizar</button> · <button class="lnk" data-a="sair-loja">Sair desta loja</button></p>`;
 }
@@ -743,17 +777,19 @@ function gerResumo(){
   </section>`;
 }
 function gerLoja(l){
-  const m = S.mes, c = calc(l, m, m === MES_ATUAL ? S.ref : null);
-  const max = m === MES_ATUAL ? HOJE : m + '-' + pad(c.DIAS);
-  let h = `<section class="card">
-    <h2 class="sec-t">Lançar ou corrigir <small>a gerência pode editar qualquer dia</small></h2>
-    ${formPassos(l, m+'-01', max, true)}
-  </section>`;
-  if (!c.fechado) h += painelAtual(l, c, S.ref);
-  else {
+  const m = S.mes, atual = m === MES_ATUAL, c = calc(l, m, atual ? S.ref : null);
+  const max = atual ? HOJE : m + '-' + pad(c.DIAS);
+  if (!S.editAberto) S.f = { data: atual ? S.ref : (S.f.data && S.f.data.startsWith(m) ? S.f.data : max), valor: 0 };
+  let h = '';
+  if (atual) {
+    h += `<section class="card"><div class="dia-hdr"><div><span class="lbl">${esc(l.nome)}</span><b class="dia-t">${S.ref === HOJE ? 'Hoje, ' : ''}${dataBR(S.ref)}</b></div>
+      <input class="inp dia-inp" type="date" id="g-data" value="${S.ref}" min="${m}-01" max="${HOJE}" aria-label="Ver outro dia"></div></section>`;
+    h += resumoDiaLoja(l, S.ref);
+    h += cardMes(c, 'Mês · ' + nomeMesC(m), 'Vendido até ' + dataBR(S.ref));
+  } else {
     const d = c.vendido - c.cota;
     h += `<section class="card">
-      <h2 class="sec-t">Fechamento de ${nomeMesC(m)} <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>
+      <h2 class="sec-t">${esc(l.nome)} · fechamento de ${nomeMesC(m)} <span class="chip ${c.status[0]}">${c.status[1]}</span></h2>
       <div class="mes-l"><div><span class="lbl">Vendido no mês</span><span class="big">${brl(c.vendido)}</span> <span class="of">de ${brl(c.cota)}</span></div><div class="big">${pctTxt(c.pct)}</div></div>
       ${regua(c)}
       <div class="facts">
@@ -762,9 +798,12 @@ function gerLoja(l){
         <div><b>${c.melhor ? dataBR(c.melhor[0]) + ' · ' + brl(c.melhor[1]) : '—'}</b><span>Melhor dia</span></div>
       </div>
     </section>`;
+    h += blocoAtend(c, null, 'Atendimento', true);
   }
-  if (c.fechado) h += blocoAtend(c, null, 'Atendimento', true);
-  return h + listaLanc(l, m, c);
+  h += listaLanc(l, m, c);
+  h += `<details class="editar" id="editar" ${S.editAberto ? 'open' : ''}><summary>✎ Lançar, corrigir ou apagar (gerência)</summary>
+    <div class="card loja-acao">${formPassos(l, m + '-01', max, true)}</div></details>`;
+  return h;
 }
 function gerCotas(){
   const ativas = ATIVAS(), inativas = D.lojas.filter(l => l.ativa === false);
@@ -950,7 +989,7 @@ async function carregarLista(){
 }
 document.addEventListener('click', async e => {
   const gv = e.target.closest('[data-gv]');
-  if (gv) { const v = gv.dataset.gv; S.gv = (v === 'rede' || v === 'cotas' || v === 'ajustes') ? v : +v; S.msg = ''; S.cotasMes = ''; S.cotasData = null; S.f = { data:'', valor:0 }; usar(D); render(); window.scrollTo(0,0); return; }
+  if (gv) { const v = gv.dataset.gv; S.gv = (v === 'rede' || v === 'cotas' || v === 'ajustes') ? v : +v; S.msg = ''; S.cotasMes = ''; S.cotasData = null; S.editAberto = false; S.f = { data:'', valor:0 }; usar(D); render(); window.scrollTo(0,0); return; }
   const a = e.target.closest('[data-a]');
   if (a) {
     const k = a.dataset.a;
@@ -1022,7 +1061,8 @@ document.addEventListener('click', async e => {
   if (dd) {
     const l = S.modo === 'loja' ? D.lojas[0] : lojaById(S.gv);
     const d = dd.dataset.dia;
-    S.f = { data: d, valor: 0 }; S.msg = ''; if (d !== HOJE) S.trocaDia = true;
+    S.f = { data: d, valor: 0 }; S.msg = '';
+    if (S.modo === 'ger' && S.mes !== MES_ATUAL) S.editAberto = true;
     if (S.modo === 'ger' && S.mes === MES_ATUAL) S.ref = dd.dataset.dia;
     render(); window.scrollTo(0,0);
   }
@@ -1163,6 +1203,7 @@ document.addEventListener('focusin', e => {
   if (el.readOnly && el.id && el.id.indexOf('lk-') === 0) el.select();
 });
 document.addEventListener('click', e => { if (ehDinheiro(e.target)) { try { e.target.setSelectionRange(e.target.value.length, e.target.value.length); } catch(_){} } });
+document.addEventListener('toggle', e => { if (e.target && e.target.id === 'editar') S.editAberto = e.target.open; }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const n = document.getElementById('dlg-nao'); if (n) n.click(); } });
 
 // atualização automática: gerência a cada 1 minuto, loja a cada 2 minutos (não interrompe quem está digitando)
