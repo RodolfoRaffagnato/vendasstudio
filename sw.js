@@ -1,5 +1,5 @@
 /* Guarda as telas do app para abrir rápido. Os dados sempre vêm da planilha. */
-const V = 'cota-v4';
+const V = 'cota-v5';
 const ARQ = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(V).then(c => c.addAll(ARQ)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));

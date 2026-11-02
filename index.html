@@ -208,7 +208,7 @@ tfoot td{font-weight:800;border-bottom:0;border-top:2px solid var(--ink)}
 .instalar ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px;font-weight:600}
 .instalar .btn{background:var(--on-accent);color:var(--accent);font-size:1.15rem;min-height:58px}
 .instalar .lnk{color:inherit;opacity:.85;align-self:flex-start}
-.linha-acao{grid-column:1/-1;margin:-2px 0 10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.linha-acao{display:flex;gap:22px;flex-wrap:wrap;grid-column:1/-1;margin:-2px 0 10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .dng-lnk{color:var(--bad)}
 .lr-inativa{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 select.inp{appearance:auto}
@@ -319,13 +319,16 @@ function confirmar(o){
     const el = document.getElementById('dlg');
     el.innerHTML = `<div class="ovl" role="dialog" aria-modal="true" aria-labelledby="dlg-t"><div class="dlg">
       <h3 id="dlg-t">${o.titulo}</h3>${o.corpo}
-      <button class="btn ${o.perigo ? 'dng' : ''}" id="dlg-sim">${o.sim}</button>
+      ${o.digitar ? `<div><label class="lbl" for="dlg-txt">Para confirmar, digite ${o.digitar}</label><input class="inp" id="dlg-txt" autocomplete="off" autocapitalize="characters"></div>` : ''}
+      <button class="btn ${o.perigo ? 'dng' : ''}" id="dlg-sim" ${o.digitar ? 'disabled' : ''}>${o.sim}</button>
       <button class="btn ghost" id="dlg-nao">${o.nao || 'Cancelar'}</button></div></div>`;
     const fim = v => { el.innerHTML = ''; res(v); };
     el.querySelector('#dlg-sim').onclick = () => fim(true);
     el.querySelector('#dlg-nao').onclick = () => fim(false);
     el.querySelector('.ovl').onclick = e => { if (e.target.classList.contains('ovl')) fim(false); };
-    el.querySelector('#dlg-nao').focus();
+    const txt = el.querySelector('#dlg-txt');
+    if (txt) { txt.oninput = () => { el.querySelector('#dlg-sim').disabled = txt.value.trim().toUpperCase() !== o.digitar; }; txt.focus(); }
+    else el.querySelector('#dlg-nao').focus();
   });
 }
 async function conferirVenda(l, data, novo){
@@ -600,7 +603,7 @@ function gerCotas(){
     <form id="form-cotas"><div class="cotas-edit">${ativas.map(l => `
       <div><label class="lbl" for="n-${l.id}">Nome da loja</label><input class="inp" id="n-${l.id}" value="${esc(l.nome)}" maxlength="60"></div>
       <div><label class="lbl" for="c-${l.id}">Cota de ${nomeMesC(cm)}</label><div class="money"><span>R$</span><input id="c-${l.id}" class="mask" data-c="${cotaV(l)}" inputmode="numeric" value="${brlN(cotaV(l))}"></div></div>
-      <div class="linha-acao"><button class="lnk dng-lnk" type="button" data-a="desativar" data-id="${l.id}">Desativar ${esc(l.nome)}</button></div>`).join('')}
+      <div class="linha-acao"><button class="lnk" type="button" data-a="desativar" data-id="${l.id}">Desativar</button><button class="lnk dng-lnk" type="button" data-a="excluir-loja" data-id="${l.id}">Excluir ${esc(l.nome)}</button></div>`).join('')}
     </div><div class="acoes"><button class="btn" type="submit" ${S.ocupado ? 'disabled' : ''}>${S.ocupado ? 'Salvando…' : 'Salvar nomes e cotas'}</button></div>
     ${S.msg ? `<p class="ok-msg" role="status">${S.msg}</p>` : ''}</form>
   </section>
@@ -614,7 +617,7 @@ function gerCotas(){
   </section>
   ${inativas.length ? `<section class="card">
     <h2 class="sec-t">Lojas desativadas <small>o link delas não funciona</small></h2>
-    <div class="links">${inativas.map(l => `<div class="lr-inativa"><b>${esc(l.nome)}</b><button class="btn sec sm" data-a="reativar" data-id="${l.id}" type="button">Reativar</button></div>`).join('')}</div>
+    <div class="links">${inativas.map(l => `<div class="lr-inativa"><b>${esc(l.nome)}</b><span class="acoes" style="margin:0"><button class="btn sec sm" data-a="reativar" data-id="${l.id}" type="button">Reativar</button><button class="btn ghost sm dng-lnk" data-a="excluir-loja" data-id="${l.id}" type="button">Excluir</button></span></div>`).join('')}</div>
   </section>` : ''}`;
 }
 function gerAjustes(){
@@ -728,6 +731,18 @@ document.addEventListener('click', async e => {
       const l = lojaById(+a.dataset.id);
       if (await confirmar({ titulo:`Desativar ${esc(l.nome)}?`, corpo:`<p>O link da loja para de funcionar e ela sai dos quadros e do e-mail diário. As vendas antigas continuam guardadas. Você pode reativar quando quiser.</p>`, sim:'Sim, desativar', perigo:true })) {
         try { usar(await call('apiGerAtivar', S.senha, l.id, false, S.mes)); render(); toast(l.nome + ' desativada.'); } catch(er){ toast(msgErro(er)[1]); }
+      }
+    }
+    if (k === 'excluir-loja') {
+      const l = lojaById(+a.dataset.id);
+      const ok = await confirmar({
+        titulo: `Excluir ${esc(l.nome)}?`,
+        corpo: `<div class="alerta">Isso não pode ser desfeito. A ${esc(l.nome)} some do app junto com todas as vendas e cotas dela, inclusive dos meses anteriores. O link dela para de funcionar.</div>
+          <p class="muted">Se a ideia é só parar de usar a loja, prefira <b>Desativar</b>: ela some dos quadros, mas as vendas ficam guardadas e você pode reativar depois.</p>`,
+        sim: `Excluir ${esc(l.nome)} de vez`, nao: 'Cancelar', perigo: true, digitar: 'EXCLUIR'
+      });
+      if (ok) {
+        try { usar(await call('apiGerExcluirLoja', S.senha, l.id, S.mes)); S.cotasData = null; render(); toast(l.nome + ' foi excluída.'); } catch(er){ toast(msgErro(er)[1]); }
       }
     }
     if (k === 'reativar') {
