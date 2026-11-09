@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<title>Cota por Loja</title>
+<title>Vendas Lojas (Grupo Studio Mais)</title>
 <meta name="theme-color" content="#3F687E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Cota">
+<meta name="apple-mobile-web-app-title" content="Vendas Lojas">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
 <style>
-/* Cota por Loja · Studio do Sono
+/* Vendas Lojas (Grupo Studio Mais)
    Mesmo visual do RD Studio do Sono: faixa azul petróleo (#3F687E) no topo, cartões que sobem sobre a faixa,
    cartão de destaque em azul escuro com brilho, abas flutuantes embaixo, fonte Manrope. */
 :root{
@@ -808,7 +808,7 @@ function telaLoja(){
   if (S.f.data !== HOJE) S.f = { data: HOJE, valor: 0 };
   const c = calc(l, MES_ATUAL, HOJE);
   const k = (rot, v, sub) => `<div class="kpi"><span class="lbl">${rot}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
-  const topo = bandaTopo({ titulo: esc(l.nome), sub: `Cota por Loja · atualizado às ${S.ultima}`,
+  const topo = bandaTopo({ titulo: esc(l.nome), sub: `Vendas Lojas · atualizado às ${S.ultima}`,
     botoes: `<button class="linkbtn" data-a="atualizar" type="button" aria-label="Atualizar agora">${ic('atualizar')}</button><button class="linkbtn" data-a="sair-loja" type="button">Sair</button>` });
   return pagina(topo, `<section class="card loja-acao">${formPassos(l, MES_ATUAL + '-01', HOJE, false)}</section>
   ${cardMes(c, 'Meu mês · ' + nomeMesC(MES_ATUAL), 'Vendido no mês')}
@@ -1115,9 +1115,9 @@ function render(){
   if (S.modo === 'loja') { if (D) view.innerHTML = telaLoja(); return; }
   view.innerHTML = S.gerOk ? telaGerencia() : telaSenha();
 }
-function telaErro(t){ INSTALAR = ''; view.classList.remove('wide'); view.innerHTML = pagina(bandaEntrada('Cota por Loja', 'Algo não saiu como esperado'), `<div class="card lock"><h2>Ops</h2><p>${esc(t)}</p><button class="btn" data-a="recarregar">Tentar de novo</button>${S.modo === 'loja' ? '<button class="btn ghost" data-a="sair-loja">Sair desta loja</button>' : ''}</div>`); }
+function telaErro(t){ INSTALAR = ''; view.classList.remove('wide'); view.innerHTML = pagina(bandaEntrada('Vendas Lojas', 'Algo não saiu como esperado'), `<div class="card lock"><h2>Ops</h2><p>${esc(t)}</p><button class="btn" data-a="recarregar">Tentar de novo</button>${S.modo === 'loja' ? '<button class="btn ghost" data-a="sair-loja">Sair desta loja</button>' : ''}</div>`); }
 function telaInicio(){
-  return pagina(bandaEntrada('Cota por Loja', 'Lançamento diário e cota das lojas'), `<h2 class="sect">Como você vai usar o app?</h2>
+  return pagina(bandaEntrada('Vendas Lojas', 'Lançamento diário e cota das lojas'), `<h2 class="sect">Como você vai usar o app?</h2>
     <button class="role-main feature" data-a="ir-loja" type="button"><span class="ico">${ic('loja')}</span><span class="stack"><span class="t">Sou loja</span><span class="small">Lançar o meu dia e ver a minha cota</span></span><span class="go">${ic('dir')}</span></button>
     <div class="roles2"><button class="role-tile" data-a="ir-ger" type="button"><span class="ico">${ic('cadeado')}</span><span class="t">Gerência</span><span class="small">Painel, cotas e senhas</span></button></div>`);
 }
@@ -1423,7 +1423,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && at
 /* início */
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(API) && !/^http:\/\/localhost/.test(API)) {
-  view.innerHTML = pagina(bandaEntrada('Cota por Loja', 'Falta um passo para ligar o app'), `<div class="card lock"><h2>Falta ligar à planilha</h2><p>Abra o arquivo <b>config.js</b> no GitHub e cole o link da planilha (o que termina em <b>/exec</b>) entre as aspas.</p></div>`);
+  view.innerHTML = pagina(bandaEntrada('Vendas Lojas', 'Falta um passo para ligar o app'), `<div class="card lock"><h2>Falta ligar à planilha</h2><p>Abra o arquivo <b>config.js</b> no GitHub e cole o link da planilha (o que termina em <b>/exec</b>) entre as aspas.</p></div>`);
 } else if (S.modo === 'loja') carregar();
 else { const sv = store.get('cota_senha'); if (sv) { S.modo = 'ger'; S.senha = sv; carregar(); } else render(); }
 })();

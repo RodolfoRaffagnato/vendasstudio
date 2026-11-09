@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Cota por Loja",
-  "short_name": "Cota",
-  "description": "Lançamento de vendas e acompanhamento de cota (lojas e gerência)",
+  "name": "Vendas Lojas (Grupo Studio Mais)",
+  "short_name": "Vendas Lojas",
+  "description": "Lançamento de vendas e acompanhamento de cota das lojas (Grupo Studio Mais)",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
