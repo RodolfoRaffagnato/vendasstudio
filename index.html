@@ -13,6 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>try{var t=localStorage.getItem('vl_tema'),f=localStorage.getItem('vl_letra');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;if(f==='grande')document.documentElement.dataset.letra='grande';}catch(e){}</script>
 <script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,8 +37,18 @@
   --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-drawer:cubic-bezier(0.32,0.72,0,1);
   color-scheme:light;
 }
+:root[data-theme="dark"]{
+    --bg:#0B1419; --surface:#15212A; --raised:#1B2A34; --line:#28394A; --rule:#22323D; --control:#5E7686;
+    --ink:#E6EEF2; --muted:#9FB2BE; --faint:#8EA2AE;
+    --brand:#8FB8CF; --brand-press:#A8CADB; --brand-soft:#1E3442; --brand-ink:#CFE2EC; --on-brand:#0D161C; --mid:#8FB8CF;
+    --ok:#7FCBA8; --ok-soft:#15291F;
+    --warn:#F5A35C; --warn-soft:#2A1E12; --warn-line:#6B4423; --warn-ink:#F8C08A; --warn-solid:#F5A35C; --on-warn-solid:#1A0F05;
+    --track:#28394A; --pace:#E6EEF2; --scrim:rgba(0,0,0,.65);
+    --feature:#1C3A49; --card-border:#22323D; --shadow-sm:none; --shadow-md:0 14px 32px rgba(0,0,0,.4);
+    color-scheme:dark;
+}
 @media (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-theme="light"]){
     --bg:#0B1419; --surface:#15212A; --raised:#1B2A34; --line:#28394A; --rule:#22323D; --control:#5E7686;
     --ink:#E6EEF2; --muted:#9FB2BE; --faint:#8EA2AE;
     --brand:#8FB8CF; --brand-press:#A8CADB; --brand-soft:#1E3442; --brand-ink:#CFE2EC; --on-brand:#0D161C; --mid:#8FB8CF;
@@ -449,6 +460,20 @@ body:has(nav.tabs) #toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
   #toast{transition:opacity 200ms ease;transform:translate(-50%,0)}
   .regua .fill,details.lanc summary::after{transition:none}
 }
+/* ajustes (três tracinhos) */
+:root[data-letra="grande"] body{zoom:1.15}
+.aj-sec{display:flex;flex-direction:column;gap:8px}
+.aj-sec > b{font-size:15px;font-weight:700}
+.aj-sec > small{color:var(--muted);font-size:13px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--track);border-radius:16px;padding:4px}
+.seg button{min-height:48px;border:0;border-radius:12px;background:transparent;color:var(--muted);font-weight:700;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  transition:background-color 160ms ease,color 160ms ease,transform 140ms var(--ease-out)}
+.seg button .i{width:20px;height:20px}
+.seg button:active{transform:scale(.97)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+.aj-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px;border-top:1px solid var(--rule)}
+.aj-ver{color:var(--muted);font-size:13px;text-align:center;margin:0}
+.band .menu-btn{margin-left:auto}
 </style>
 </head>
 <body>
@@ -498,11 +523,55 @@ const pagina = (topo, corpo, nav) => topo + '<main><div class="main-in">' + INST
 const saudacao = () => { const h = new Date().getHours(); return h < 12 ? 'Bom dia!' : h < 18 ? 'Boa tarde!' : 'Boa noite!'; };
 function bandaTopo(o){
   return `<header class="band"><div class="band-in">
-    <div class="row"><span class="brand"><img class="bmark" src="${MARK}" alt="Studio do Sono"><h1 class="inline">${o.titulo}</h1></span><span class="row" style="gap:6px">${o.botoes || ''}</span></div>
+    <div class="row"><span class="brand"><img class="bmark" src="${MARK}" alt="Studio do Sono"><h1 class="inline">${o.titulo}</h1></span><span class="row" style="gap:6px">${o.botoes || ''}${BTN_MENU()}</span></div>
     ${o.sub ? `<span class="sub">${o.sub}</span>` : ''}${o.extra || ''}</div></header>`;
 }
-const bandaEntrada = (titulo, sub) => `<header class="band welcome home"><div class="band-in"><div class="row"><img class="logo-full" src="${LOGO}" alt="Studio do Sono"></div><span class="hello">${saudacao()}</span><h1>${titulo}</h1><span class="sub">${sub}</span></div></header>`;
-const bandaFluxo = (voltar, titulo, sub) => `<header class="band welcome flow"><div class="band-in"><div class="row"><button class="linkbtn round" type="button" data-a="${voltar}" aria-label="Voltar">${ic('esq')}</button><img class="bmark" src="${MARK}" alt=""></div><h1>${titulo}</h1>${sub ? `<span class="sub">${sub}</span>` : ''}</div></header>`;
+const bandaEntrada = (titulo, sub) => `<header class="band welcome home"><div class="band-in"><div class="row"><img class="logo-full" src="${LOGO}" alt="Studio do Sono">${BTN_MENU('menu-btn')}</div><span class="hello">${saudacao()}</span><h1>${titulo}</h1><span class="sub">${sub}</span></div></header>`;
+const bandaFluxo = (voltar, titulo, sub) => `<header class="band welcome flow"><div class="band-in"><div class="row"><button class="linkbtn round" type="button" data-a="${voltar}" aria-label="Voltar">${ic('esq')}</button><img class="bmark" src="${MARK}" alt="">${BTN_MENU('menu-btn')}</div><h1>${titulo}</h1>${sub ? `<span class="sub">${sub}</span>` : ''}</div></header>`;
+
+/* ---------- ajustes (três tracinhos) ---------- */
+const VERSAO = 'v17';
+const BTN_MENU = (cls) => `<button class="linkbtn round ${cls || ''}" type="button" data-a="menu" aria-label="Ajustes">${ic('menu')}</button>`;
+const pref = { get(k, d){ try { return localStorage.getItem(k) || d; } catch(_){ return d; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(_){} } };
+function aplicarPrefs(){
+  const t = pref.get('vl_tema', 'auto'), f = pref.get('vl_letra', 'normal'), r = document.documentElement;
+  if (t === 'auto') delete r.dataset.theme; else r.dataset.theme = t;
+  if (f === 'grande') r.dataset.letra = 'grande'; else delete r.dataset.letra;
+}
+function abrirAjustes(){
+  const el = document.getElementById('dlg');
+  const seg = (k, def, ops) => `<div class="seg" role="group">${ops.map(o => `<button type="button" data-pk="${k}" data-pv="${o[0]}" aria-pressed="${pref.get(k, def) === o[0]}">${o[2] ? ic(o[2]) : ''}${o[1]}</button>`).join('')}</div>`;
+  const logado = (S.modo === 'loja') || S.gerOk;
+  el.innerHTML = `<div class="ovl" role="dialog" aria-modal="true" aria-labelledby="aj-t"><div class="dlg">
+    <h3 id="aj-t">Ajustes</h3>
+    <div class="aj-sec"><b>Aparência</b>${seg('vl_tema', 'auto', [['auto','Automático','auto'],['light','Claro','sol'],['dark','Escuro','lua']])}
+      <small>Automático segue o modo claro ou escuro do celular.</small></div>
+    <div class="aj-sec"><b>Tamanho da letra</b>${seg('vl_letra', 'normal', [['normal','Normal'],['grande','Grande']])}</div>
+    <div class="aj-sec"><b>Aplicativo</b>
+      <button class="btn ghost" type="button" id="aj-atualizar">${ic('atualizar')} Buscar versão nova</button>
+      ${logado ? `<button class="btn ghost" type="button" id="aj-sair">${ic('sair')} Sair desta conta</button>` : ''}
+      <small>Use "Buscar versão nova" se o app parecer desatualizado. Seus dados ficam na planilha e não se perdem.</small></div>
+    <button class="btn" type="button" id="aj-fechar">Pronto</button>
+    <p class="aj-ver">Vendas Lojas (Grupo Studio Mais) · versão ${VERSAO}</p></div></div>`;
+  const fim = () => { el.innerHTML = ''; };
+  el.querySelector('.ovl').onclick = e => {
+    if (e.target.classList.contains('ovl')) return fim();
+    const b = e.target.closest('[data-pk]');
+    if (b) { pref.set(b.dataset.pk, b.dataset.pv); aplicarPrefs(); el.querySelectorAll(`[data-pk="${b.dataset.pk}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+  };
+  el.querySelector('#aj-fechar').onclick = fim;
+  el.querySelector('#aj-atualizar').onclick = async () => {
+    toast('Buscando a versão nova…');
+    try { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); } catch(_){}
+    try { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r => r.update())); } catch(_){}
+    location.reload();
+  };
+  const sair = el.querySelector('#aj-sair');
+  if (sair) sair.onclick = () => { fim(); const b = document.querySelector('[data-a="sair"],[data-a="sair-loja"]'); if (b) b.click(); };
+  el.querySelector('#aj-fechar').focus();
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-a="menu"]')) abrirAjustes(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('#dlg [aria-labelledby="aj-t"]')) document.getElementById('dlg').innerHTML = ''; });
 
 /* ---------- conversa com a planilha ---------- */
 async function call(fn){
@@ -694,6 +763,10 @@ function formPassos(l, min, max, ger){
   return h;
 }
 const ICONES = {
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  lua: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  auto: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   loja: '<path d="M4 10v10h16V10"/><path d="M3 10l2-6h14l2 6"/><path d="M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M10 20v-5h4v5"/>',
   cadeado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   lapis: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
